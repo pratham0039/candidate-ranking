@@ -1,0 +1,84 @@
+# Redrob Hackathon — Submission Metadata
+
+# ============================================================================
+# Team identity
+# ============================================================================
+team_name: "FILL_ME"  # TODO: your registered team name
+
+primary_contact:
+  name: "Pratham Modi"
+  email: "pratham@a79.ai"
+  phone: "+91-XXXXXXXXXX"  # TODO
+
+team_members:
+  - name: "Pratham Modi"
+    email: "pratham@a79.ai"
+    role: "Team Lead / ML Engineer"
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/pratham0039/India_runs"
+
+sandbox_link: "https://FILL_ME"  # TODO: Streamlit Cloud / HF Spaces link after deploy
+
+reproduce_command: "python rank.py --candidates ./candidates.jsonl --jd data/job_description.md --out ./submission.csv"
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "MacBook Pro (Apple Silicon)"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.14"
+  os: "macOS 15"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: true
+  pre_computation_time_minutes: 20
+
+# ============================================================================
+# AI tools declaration
+# ============================================================================
+ai_tools_used:
+  - "Claude"
+
+ai_usage_summary: |
+  Used Claude (Claude Code) as a pair programmer: architecture discussion,
+  code drafting and review, and data exploration. All design decisions,
+  the scoring methodology, and final code review were done by the team.
+  No candidate data was sent to any hosted LLM; the ranking step makes no
+  network calls.
+
+# ============================================================================
+# Approach summary (optional but recommended)
+# ============================================================================
+methodology_summary: |
+  A JD parser converts the job description into a structured spec: an
+  experience band, location policy, must-have/nice-to-have competency
+  groups, and explicit rejection patterns. Candidates pass two hard gates
+  (no software/data/ML career evidence; internally inconsistent profiles
+  whose dates or durations are impossible) before scoring. Survivors are
+  scored as a product of interpretable factors: a skill-fit blend of
+  competency-coverage evidence, TF-IDF and MiniLM embedding similarity
+  computed over career-history text rather than self-reported skill lists,
+  multiplied by an experience-band trapezoid, a location factor, an
+  availability factor from platform engagement signals, and penalties for
+  patterns the JD rejects (services-only history, title-chasing, vision/
+  speech-only background). Factor weights were tuned by random search
+  against an offline benchmark we built during development, using the
+  competition composite. Reasoning strings are generated from the same
+  factors that produced each score, so every claim traces to a profile
+  fact. Ranking 100K candidates takes about two minutes on a laptop CPU
+  with no network access; embeddings are precomputed once.
+
+# ============================================================================
+# Declarations
+# ============================================================================
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true
