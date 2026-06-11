@@ -24,3 +24,7 @@ venv/
 
 # os
 .DS_Store
+
+# internal benchmark labels and logs
+artifacts/labels.csv
+artifacts/precompute.log

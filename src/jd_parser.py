@@ -177,6 +177,16 @@ def parse_jd(text):
     return spec
 
 
+def jd_query_text(spec):
+    """The text candidates are matched against: the JD itself plus the
+    surface forms of its must-have competencies, so the query emphasizes
+    what the role actually requires over boilerplate."""
+    parts = [spec.jd_text]
+    for concept in spec.must_have:
+        parts.append(" ".join(CONCEPT_LEXICONS.get(concept, [])))
+    return " ".join(parts).lower()
+
+
 if __name__ == "__main__":
     import sys
     path = sys.argv[1] if len(sys.argv) > 1 else "data/job_description.md"
