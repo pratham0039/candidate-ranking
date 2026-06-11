@@ -80,28 +80,31 @@ def load_relevance_artifacts(jd_text_str):
     index, or Nones when artifacts are unavailable (pure-feature fallback)."""
     tfidf_path = os.path.join(ART, "tfidf.pkl")
     emb_path = os.path.join(ART, "embeddings.npz")
-    if not (os.path.exists(tfidf_path) and os.path.exists(emb_path)):
-        return None, None, None
 
-    with open(tfidf_path, "rb") as f:
-        tfidf = pickle.load(f)
-    data = np.load(emb_path, allow_pickle=False)
-    ids = [i for i in data["ids"]]
-    emb = data["embeddings"]
+    tfidf = None
+    if os.path.exists(tfidf_path):
+        with open(tfidf_path, "rb") as f:
+            tfidf = pickle.load(f)
 
-    jd_emb = None
-    try:  # local model cache; no network in the ranking environment
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu",
-                                    local_files_only=True)
-        jd_emb = model.encode([jd_text_str], normalize_embeddings=True,
-                              convert_to_numpy=True)[0].astype(np.float32)
-    except Exception:
-        jd_path = os.path.join(ART, "jd_embedding.npy")
-        if os.path.exists(jd_path):
-            jd_emb = np.load(jd_path)
+    ids, embed_scores = None, None
+    if os.path.exists(emb_path):
+        data = np.load(emb_path, allow_pickle=False)
+        ids = [i for i in data["ids"]]
+        emb = data["embeddings"]
 
-    embed_scores = emb @ jd_emb if jd_emb is not None else None
+        jd_emb = None
+        try:  # local model cache; no network in the ranking environment
+            from sentence_transformers import SentenceTransformer
+            model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu",
+                                        local_files_only=True)
+            jd_emb = model.encode([jd_text_str], normalize_embeddings=True,
+                                  convert_to_numpy=True)[0].astype(np.float32)
+        except Exception:
+            jd_path = os.path.join(ART, "jd_embedding.npy")
+            if os.path.exists(jd_path):
+                jd_emb = np.load(jd_path)
+
+        embed_scores = emb @ jd_emb if jd_emb is not None else None
     return ids, tfidf, embed_scores
 
 
@@ -243,11 +246,15 @@ def main():
     else:
         em_norm = np.zeros(len(survivors), dtype=np.float32)
 
-    blend_total = weights["w_evidence"] + weights["w_tfidf"] + weights["w_embed"]
+    # blend over the components that are actually available, so a missing
+    # artifact degrades gracefully instead of diluting the score
+    w_tf = weights["w_tfidf"] if tfidf is not None else 0.0
+    w_em = weights["w_embed"] if embed_scores is not None else 0.0
+    blend_total = weights["w_evidence"] + w_tf + w_em
     for i, s in enumerate(survivors):
         skill_fit = (weights["w_evidence"] * ev_norm[i]
-                     + weights["w_tfidf"] * tf_norm[i]
-                     + weights["w_embed"] * em_norm[i]) / blend_total
+                     + w_tf * tf_norm[i]
+                     + w_em * em_norm[i]) / blend_total
         s["skill_fit"] = float(skill_fit)
         s["final"] = float(
             skill_fit
