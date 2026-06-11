@@ -1,0 +1,26 @@
+# secrets — never commit
+.secrets/
+
+# dataset (465MB, distributed by organizers)
+candidates.jsonl
+candidates.jsonl.gz
+
+# internal evaluation work — kept local for now
+ground_truth.py
+eval_harness.py
+make_gold100.py
+artifacts/ground_truth.csv
+artifacts/gold_top100.csv
+
+# generated artifacts (rebuilt via precompute.py)
+artifacts/*.npz
+artifacts/*.pkl
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# os
+.DS_Store
