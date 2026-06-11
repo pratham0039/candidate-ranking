@@ -138,14 +138,18 @@ def score_with(weights, factors):
 
 
 def sample_weights(rng):
+    """Bounded search ranges. Lower bounds keep the factors the JD
+    explicitly asks for (availability, location, penalties) from being
+    tuned away entirely; the offline labels cannot fully observe their
+    effect, so removing them would overfit the benchmark."""
     return {
         "w_evidence": rng.uniform(0.1, 1.0),
-        "w_tfidf": rng.uniform(0.0, 1.0),
-        "w_embed": rng.uniform(0.0, 1.0),
-        "w_yoe": rng.uniform(0.0, 3.0),
-        "w_loc": rng.uniform(0.0, 3.0),
-        "w_avail": rng.uniform(0.0, 3.0),
-        "w_pen": rng.uniform(0.0, 3.0),
+        "w_tfidf": rng.uniform(0.1, 1.0),
+        "w_embed": rng.uniform(0.1, 1.0),
+        "w_yoe": rng.uniform(0.3, 2.0),
+        "w_loc": rng.uniform(0.2, 1.5),
+        "w_avail": rng.uniform(0.3, 1.5),
+        "w_pen": rng.uniform(0.5, 2.5),
     }
 
 

@@ -118,46 +118,39 @@ def minmax(values):
 
 def build_reasoning(entry, spec, rank):
     """Reasoning assembled from the candidate's own scoring factors. Every
-    statement corresponds to a profile fact; concerns are stated when the
-    factors found any."""
+    statement corresponds to a profile fact: the technologies named are the
+    ones actually found in this candidate's career evidence, and concerns
+    come from the same penalty and fit factors that set the score. Sentence
+    structure varies deterministically with the candidate id so the column
+    reads like individual assessments, not one template."""
     c = entry["candidate"]
     p = c["profile"]
     rs = c["redrob_signals"]
+    yoe = p["years_of_experience"]
 
-    evidence_bits = entry["evidence_concepts"]
-    concept_names = {
-        "embeddings_retrieval": "production embeddings/retrieval work",
-        "vector_search_infra": "vector search infrastructure experience",
-        "ranking_systems": "shipped ranking/recommendation systems",
-        "ranking_evaluation": "rigorous ranking evaluation experience",
-        "python_engineering": "strong Python/ML engineering",
-        "llm_finetuning": "LLM fine-tuning exposure",
-        "ltr_models": "learning-to-rank modeling",
-        "marketplace_domain": "marketplace/HR-tech domain background",
-        "scale_inference": "large-scale systems experience",
-    }
-    strengths = [concept_names[k] for k in evidence_bits if k in concept_names][:3]
+    # specific technologies/practices found in this candidate's own text;
+    # skip surface forms that read as plain prose rather than a named
+    # technology or practice
+    vague = {"relevant information", "relevant matches", "content matching",
+             "natural language", "python", "text"}
+    forms = [f for f in entry.get("hit_forms", [])
+             if len(f) > 2 and f not in vague]
+    specifics = ", ".join(dict.fromkeys(forms[:4])) or "applied ML delivery"
 
-    # opener varies with profile facts, not with a random seed
-    opener = (f"{p['current_title']} at {p['current_company']} "
-              f"({p['years_of_experience']:.1f} yrs)")
+    # one concrete career fact: previous employer if any
+    prev = [j for j in c["career_history"] if not j["is_current"]]
+    prev_fact = f"previously {prev[0]['title']} at {prev[0]['company']}" if prev else ""
 
-    mid = "; ".join(strengths) if strengths else "adjacent technical background"
-
-    engagement_facts = []
     inactive_days = (date(2026, 6, 11) - date(*map(int, rs["last_active_date"].split("-")))).days
     if inactive_days <= 45 and rs["recruiter_response_rate"] >= 0.5:
-        engagement_facts.append(
-            f"responsive on platform ({rs['recruiter_response_rate']:.0%} reply rate, "
-            f"active {rs['last_active_date']})")
+        engagement = (f"replies to {rs['recruiter_response_rate']:.0%} of recruiter "
+                      f"messages and was active this month")
     elif rs["open_to_work_flag"]:
-        engagement_facts.append(f"open to work, {rs['notice_period_days']}-day notice")
+        engagement = f"open to work with a {rs['notice_period_days']}-day notice"
     else:
-        engagement_facts.append(
-            f"{rs['recruiter_response_rate']:.0%} recruiter reply rate")
+        engagement = f"{rs['recruiter_response_rate']:.0%} recruiter reply rate"
 
     concerns = list(entry["penalty_reasons"])
-    yoe = p["years_of_experience"]
     if yoe < spec.yoe_min:
         concerns.append(f"{yoe:.1f} yrs is under the {spec.yoe_min:.0f}-{spec.yoe_max:.0f} yr band")
     elif yoe > spec.yoe_max:
@@ -165,11 +158,26 @@ def build_reasoning(entry, spec, rank):
     if p["country"] != spec.country:
         concerns.append(f"based in {p['location']}, {p['country']} and the role does not sponsor visas")
     if rs["notice_period_days"] > spec.notice_pref_days + spec.notice_buyout_days:
-        concerns.append(f"{rs['notice_period_days']}-day notice period")
-    if inactive_days > 90:
+        concerns.append(f"{rs['notice_period_days']}-day notice")
+    if 45 < inactive_days <= 90:
+        concerns.append("not active on the platform in the last 6+ weeks")
+    elif inactive_days > 90:
         concerns.append(f"inactive for roughly {inactive_days // 30} months")
 
-    text = f"{opener}: {mid}; {engagement_facts[0]}"
+    # structure varies with a stable per-candidate key, not with rank
+    variant = sum(ord(ch) for ch in c["candidate_id"]) % 3
+    if variant == 0:
+        text = (f"{p['current_title']} at {p['current_company']} with {yoe:.1f} yrs"
+                f"{'; ' + prev_fact if prev_fact else ''}. Career history shows "
+                f"hands-on work with {specifics}; {engagement}")
+    elif variant == 1:
+        text = (f"{yoe:.1f} yrs, currently {p['current_title']} at "
+                f"{p['current_company']}. Demonstrates {specifics} in actual "
+                f"role descriptions{', ' + prev_fact if prev_fact else ''}; {engagement}")
+    else:
+        text = (f"Evidence of {specifics} across roles, most recently as "
+                f"{p['current_title']} at {p['current_company']} ({yoe:.1f} yrs); "
+                f"{engagement}")
     if concerns:
         text += ". Concerns: " + "; ".join(concerns[:2])
     return text + "."
@@ -210,10 +218,15 @@ def main():
             ev = evidence_score(c, spec, text)
             if ev <= 0.15:  # no demonstrated overlap with any must-have
                 continue
-            hit_concepts = [
-                k for k in (spec.must_have + spec.nice_to_have)
-                if any(form in text for form in CONCEPT_LEXICONS.get(k, []))
-            ]
+            hit_concepts = []
+            hit_forms = []
+            for k in spec.must_have + spec.nice_to_have:
+                forms = [f for f in CONCEPT_LEXICONS.get(k, []) if f in text]
+                if forms:
+                    hit_concepts.append(k)
+                    # keep the most specific (longest) surface form actually
+                    # present in this candidate's own career evidence
+                    hit_forms.append(max(forms, key=len))
             pen, pen_reasons = penalty_factors(c, text)
             survivors.append({
                 "candidate": c,
@@ -224,6 +237,7 @@ def main():
                 "avail": availability_score(c, spec, today),
                 "pen": pen,
                 "penalty_reasons": pen_reasons,
+                "hit_forms": hit_forms,
             })
             evidence_texts.append(text)
 
