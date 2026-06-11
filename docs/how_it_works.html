@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redrob Ranker — How It Works</title>
+<style>
+  :root {
+    --bg: #0e1117; --card: #181d27; --card2: #1f2633; --ink: #e8ebf0;
+    --muted: #9aa4b2; --accent: #5dd39e; --accent2: #6aa9ff; --warn: #ffb454;
+    --bad: #ff6b6b; --line: #2b3344;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif; line-height: 1.55; padding: 40px 20px 80px; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 34px; margin-bottom: 6px; }
+  h2 { font-size: 24px; margin: 48px 0 16px; color: var(--accent); }
+  h3 { font-size: 17px; margin: 20px 0 8px; color: var(--accent2); }
+  p.sub { color: var(--muted); margin-bottom: 26px; font-size: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; margin: 14px 0; }
+
+  /* funnel */
+  .funnel { display: flex; flex-direction: column; gap: 10px; }
+  .stage { display: flex; align-items: center; gap: 16px; }
+  .bar { height: 46px; border-radius: 9px; display: flex; align-items: center; padding: 0 16px; font-weight: 600; white-space: nowrap; min-width: 130px; }
+  .b1 { width: 100%; background: linear-gradient(90deg,#39455e,#2b3a55); }
+  .b2 { width: 38%;  background: linear-gradient(90deg,#3c5b7a,#33506d); }
+  .b3 { width: 30%;  background: linear-gradient(90deg,#3d6f86,#33617a); }
+  .b4 { width: 21%;  background: linear-gradient(90deg,#3f8a82,#357a73); }
+  .b5 { width: 7%;   background: linear-gradient(90deg,#48b07c,#3b9c6c); }
+  .stage .why { color: var(--muted); font-size: 14px; }
+  .stage .why b { color: var(--ink); }
+  .drop { color: var(--bad); font-size: 13px; margin-left: 4px; }
+
+  /* embedding visual */
+  .embed-flow { display: grid; grid-template-columns: 1fr 56px 1fr; gap: 8px; align-items: stretch; margin-top: 14px; }
+  .ebox { background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 14px; font-size: 14px; }
+  .ebox .tag { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .vec { font-family: "SF Mono", Menlo, monospace; font-size: 12.5px; color: var(--accent); word-break: break-all; }
+  .arrow { display:flex; align-items:center; justify-content:center; color: var(--muted); font-size: 22px; }
+  .cosine { text-align:center; background: var(--card2); border:1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 10px; }
+  .cosine .big { font-size: 26px; font-weight: 700; color: var(--accent2); }
+
+  /* formula */
+  .formula { font-family: "SF Mono", Menlo, monospace; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; font-size: 14.5px; overflow-x: auto; }
+  .formula .hl { color: var(--accent); }
+  .factors { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 14px; }
+  .fcard { background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; }
+  .fcard b { color: var(--accent2); display: block; margin-bottom: 4px; }
+
+  /* worked example */
+  .profile-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+  .pill { display: inline-block; background: var(--card2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; font-size: 12.5px; color: var(--muted); margin: 3px 4px 0 0; }
+  table.calc { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+  table.calc th, table.calc td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.calc th { color: var(--muted); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .6px; }
+  td.num { font-family: "SF Mono", Menlo, monospace; color: var(--accent); white-space: nowrap; }
+  .quote { border-left: 3px solid var(--accent2); padding: 8px 14px; color: var(--muted); font-size: 14px; margin: 10px 0; font-style: italic; }
+  .final-line { font-family: "SF Mono", Menlo, monospace; background: #15241c; border: 1px solid #2c5a44; border-radius: 10px; padding: 14px 16px; margin-top: 14px; font-size: 14.5px; }
+  .final-line b { color: var(--accent); font-size: 17px; }
+  .reason-box { background: var(--card2); border: 1px dashed var(--line); border-radius: 10px; padding: 14px 16px; margin-top: 10px; font-size: 14.5px; }
+  .reason-box span.src { color: var(--accent); }
+  .reason-box span.src2 { color: var(--accent2); }
+  .reason-box span.src3 { color: var(--warn); }
+  .legend { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  .legend i { font-style: normal; padding: 1px 7px; border-radius: 6px; margin-right: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>How the Ranker Works</h1>
+<p class="sub">From 100,000 candidates to a trusted top-100 shortlist for the Senior AI Engineer role — every number below is from the real pipeline run.</p>
+
+<!-- ============ FUNNEL ============ -->
+<h2>1 · The funnel: 100,000 → 100</h2>
+<div class="card funnel">
+  <div class="stage">
+    <div class="bar b1">100,000 candidates</div>
+    <div class="why">The full pool, as released.</div>
+  </div>
+  <div class="stage">
+    <div class="bar b2">31,179</div>
+    <div class="why"><b>Title gate.</b> No software / data / ML role anywhere in the career history → out. <span class="drop">−68,821</span></div>
+  </div>
+  <div class="stage">
+    <div class="bar b3">30,700</div>
+    <div class="why"><b>Consistency gate.</b> Dates and durations must add up: claiming 15 yrs with a 7-yr career, or "expert" skills never used → out. <span class="drop">−479</span></div>
+  </div>
+  <div class="stage">
+    <div class="bar b4">17,394</div>
+    <div class="why"><b>Evidence floor.</b> Career descriptions must demonstrate at least some overlap with the JD's must-haves. <span class="drop">−13,306</span></div>
+  </div>
+  <div class="stage">
+    <div class="bar b5">100</div>
+    <div class="why"><b>Scored &amp; ranked.</b> Every survivor gets one score; the top 100 make the shortlist.</div>
+  </div>
+</div>
+
+<!-- ============ EMBEDDINGS ============ -->
+<h2>2 · What the embeddings actually do</h2>
+<div class="card">
+  <p>An embedding turns a paragraph of text into a list of <b>384 numbers</b> that capture its <i>meaning</i>. Texts about the same idea get similar numbers, even when they share no words. We embed two things with the same model (MiniLM, runs on CPU):</p>
+  <div class="embed-flow">
+    <div class="ebox">
+      <div class="tag">Each candidate's career text (precomputed once, 13 min)</div>
+      "Built a RAG-based ranking pipeline… BM25 + dense retrieval (BGE embeddings, FAISS HNSW)…"
+      <div class="vec">→ [0.031, −0.118, 0.054, … 0.077]</div>
+    </div>
+    <div class="arrow">⟶</div>
+    <div class="ebox">
+      <div class="tag">The job description (one vector)</div>
+      "Production experience with embeddings-based retrieval… vector databases… evaluation frameworks for ranking…"
+      <div class="vec">→ [0.044, −0.092, 0.061, … 0.083]</div>
+    </div>
+  </div>
+  <div class="cosine">
+    At ranking time we just measure the <b>angle</b> between each candidate's vector and the JD vector (cosine similarity) — one multiplication per candidate, which is why ranking takes <span class="big">14 s</span> after the one-time precompute.
+  </div>
+  <p style="margin-top:12px">Why bother? Because the best candidates don't always use the JD's words. One top profile wrote <i>"systems that connect users with relevant information at scale"</i> — zero buzzwords, but its embedding lands close to the JD's. Keyword matching misses this person; the embedding doesn't.</p>
+</div>
+
+<!-- ============ SCORE ============ -->
+<h2>3 · The score: one number per candidate</h2>
+<div class="card">
+  <div class="formula">
+score = <span class="hl">skill_fit</span> × yoe<sup>1.26</sup> × location<sup>0.22</sup> × availability<sup>0.33</sup> × penalties<sup>0.83</sup><br><br>
+<span class="hl">skill_fit</span> = (0.13·evidence + 0.76·tfidf_sim + 0.25·embed_sim) / 1.14
+  </div>
+  <div class="factors">
+    <div class="fcard"><b>evidence</b>How many JD must-have competencies the career text demonstrates (embeddings work, vector infra, ranking systems, evaluation, Python).</div>
+    <div class="fcard"><b>tfidf_sim</b>Word-level similarity with the JD, weighted toward rare, telling terms (FAISS, NDCG…).</div>
+    <div class="fcard"><b>embed_sim</b>The meaning-level similarity from section 2.</div>
+    <div class="fcard"><b>yoe</b>Trapezoid: 1.0 at 6–8 yrs, ramps at 5/9, decays outside.</div>
+    <div class="fcard"><b>location</b>Pune/Noida 1.0 · welcome metros 0.9 · rest of India 0.55–0.75 · abroad ≤0.35.</div>
+    <div class="fcard"><b>availability</b>Login recency (halves every 45 idle days) + reply rate + open-to-work + notice period.</div>
+    <div class="fcard"><b>penalties</b>Dampeners for what the JD rejects: services-only careers, title-chasing, CV/speech-only.</div>
+  </div>
+  <p style="margin-top:14px">Factors <b>multiply</b>, so no single strength can paper over a broken dimension — a perfect-on-paper ghost who never replies still sinks. The exponents weren't guessed: 4,000 random combinations were tested against our offline benchmark and the best kept.</p>
+</div>
+
+<!-- ============ WORKED EXAMPLE ============ -->
+<h2>4 · One real row, end to end</h2>
+<div class="card">
+  <div class="profile-head">
+    <h3 style="margin:0">CAND_0081846 — our rank #1</h3>
+    <span style="color:var(--muted)">final score 0.8537</span>
+  </div>
+  <div style="margin-top:6px">
+    <span class="pill">Lead AI Engineer @ Razorpay</span>
+    <span class="pill">prev: Senior MLE @ Paytm</span>
+    <span class="pill">6.7 yrs</span>
+    <span class="pill">Jaipur, willing to relocate</span>
+    <span class="pill">replies to 73% · active May 3</span>
+    <span class="pill">open to work · 30-day notice</span>
+  </div>
+  <div class="quote">From his actual career history: "Built a RAG-based ranking pipeline serving 50M+ queries per month for an internal recruiter-facing search product… BM25 + dense retrieval (BGE embeddings, FAISS HNSW) with an LLM-based re-ranker… falling back to a learning-to-rank model when latency budget was…"</div>
+
+  <h3>Step A — gates</h3>
+  <p>Title gate ✓ (AI/ML roles throughout) · Consistency ✓ (6.7 claimed yrs fit the career dates; no impossible skills).</p>
+
+  <h3>Step B — skill fit</h3>
+  <table class="calc">
+    <tr><th>Component</th><th>Raw measurement</th><th>Normalized vs all 17,394</th></tr>
+    <tr><td>Evidence coverage</td><td>5/5 must-haves + 4/4 nice-to-haves found in career text (embeddings, FAISS/Qdrant, ranking, NDCG/MRR, Python…)</td><td class="num">1.0000 (best in pool)</td></tr>
+    <tr><td>TF-IDF similarity</td><td>cosine 0.311 with the JD</td><td class="num">1.0000 (best in pool)</td></tr>
+    <tr><td>Embedding similarity</td><td>cosine 0.573 with the JD vector</td><td class="num">0.8764</td></tr>
+  </table>
+  <div class="formula" style="margin-top:10px">skill_fit = (0.13×1.0000 + 0.76×1.0000 + 0.25×0.8764) / 1.14 = <span class="hl">0.9732</span></div>
+
+  <h3>Step C — the multipliers</h3>
+  <table class="calc">
+    <tr><th>Factor</th><th>Why this value</th><th>Raw</th><th>After exponent</th></tr>
+    <tr><td>Experience</td><td>6.7 yrs sits inside the ideal 6–8 band</td><td class="num">1.000</td><td class="num">1.000<sup>1.26</sup> = 1.0000</td></tr>
+    <tr><td>Location</td><td>India but not a preferred metro; willing to relocate</td><td class="num">0.750</td><td class="num">0.750<sup>0.22</sup> = 0.9381</td></tr>
+    <tr><td>Availability</td><td>Active 5 weeks ago, 73% reply rate, open to work, 30-day notice</td><td class="num">0.814</td><td class="num">0.814<sup>0.33</sup> = 0.9351</td></tr>
+    <tr><td>Penalties</td><td>Product companies only, no red-flag patterns</td><td class="num">1.000</td><td class="num">1.000<sup>0.83</sup> = 1.0000</td></tr>
+  </table>
+  <div class="final-line">final = 0.9732 × 1.0000 × 0.9381 × 0.9351 × 1.0000 = <b>0.8537</b> → highest of 17,394 → <b>rank 1</b></div>
+
+  <h3>Step D — the reasoning string, assembled from the same facts</h3>
+  <div class="reason-box">
+    "<span class="src2">6.7 yrs, currently Lead AI Engineer at Razorpay</span>. Demonstrates <span class="src">sentence-transformers, hybrid retrieval, recommendation system, evaluation framework</span> in actual role descriptions, <span class="src2">previously Senior Machine Learning Engineer at Paytm</span>; <span class="src3">replies to 73% of recruiter messages and was active this month</span>."
+  </div>
+  <div class="legend">
+    <i style="background:#1d3a2d;color:var(--accent)">green</i> exact terms found in <b>his</b> career text during scoring
+    <i style="background:#1d2c44;color:var(--accent2)">blue</i> profile facts
+    <i style="background:#3a2f1a;color:var(--warn)">orange</i> live platform signals
+    — nothing is generated independently of the score; a weaker candidate's string automatically gains a "Concerns:" clause from the same penalty flags that lowered their number.
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<div class="card" style="margin-top:34px; color:var(--muted); font-size:13.5px">
+  Ranking step: 14 s wall-clock, CPU-only, no network, ~840 MB RAM (limits: 5 min / 16 GB). Embedding precompute is a one-time offline job, exactly like indexing in a production search system.
+</div>
+
+</div>
+</body>
+</html>
