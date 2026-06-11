@@ -81,6 +81,25 @@ computed over career descriptions and retuned:
 - NDCG@50: 0.940 -> 0.967, MAP: 0.987, composite: 0.982 -> 0.988
 - the top-100 now contains every candidate our benchmark rates highest
 
+## Experiment E: manual boundary review
+
+Before finalizing, we manually read every profile at ranks 80-120 (the
+in/out boundary) as a skeptical second pass. This surfaced a profile whose
+structured experience field said 2.7 years while its own summary text said
+6.3 years. Prevalence analysis showed this contradiction pattern in 0.02%
+of ordinary profiles but 7.3% of the strongest profile family, the same
+rare-but-concentrated signature as the other planted inconsistencies. We
+added it as consistency check #4; the affected profiles left the top-100
+and the boundary refilled with internally consistent candidates.
+
+## Experiment F: containerized reproduction
+
+The full ranking step was reproduced from a fresh clone inside a
+python:3.11-slim container with networking disabled and memory capped at
+16 GB. Output matched the local submission byte-for-byte. Wall-clock was
+49 s on container-local disk (the 275 s first attempt was Docker-for-Mac
+bind-mount I/O overhead, worth knowing about when reproducing on a Mac).
+
 ## Rejected ideas
 
 - **LLM re-ranking of the top ~300**: standard retrieve-cheap/re-rank-
