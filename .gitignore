@@ -28,3 +28,6 @@ venv/
 # internal benchmark labels and logs
 artifacts/labels.csv
 artifacts/precompute.log
+
+# intermediate experiment outputs
+artifacts/submission_*.csv
