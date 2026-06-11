@@ -52,7 +52,7 @@ from jd_parser import parse_jd, jd_query_text, CONCEPT_LEXICONS  # noqa: E402
 from consistency import consistency_violations  # noqa: E402
 from features import (candidate_evidence_text, evidence_score, yoe_score,  # noqa: E402
                       location_score, availability_score, penalty_factors,
-                      engineering_title_gate)
+                      engineering_title_gate, ownership_score)
 
 ART = os.path.join(HERE, "artifacts")
 
@@ -64,6 +64,7 @@ DEFAULT_WEIGHTS = {
     "w_loc": 1.0,
     "w_avail": 1.0,
     "w_pen": 1.0,
+    "w_own": 1.0,    # ownership vs hedge language in career evidence
 }
 
 
@@ -238,6 +239,7 @@ def main():
                 "pen": pen,
                 "penalty_reasons": pen_reasons,
                 "hit_forms": hit_forms,
+                "own": ownership_score(c, text),
             })
             evidence_texts.append(text)
 
@@ -276,6 +278,7 @@ def main():
             * s["loc"] ** weights["w_loc"]
             * s["avail"] ** weights["w_avail"]
             * s["pen"] ** weights["w_pen"]
+            * s["own"] ** weights["w_own"]
         )
 
     # round to emitted precision before sorting so equal emitted scores are

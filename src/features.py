@@ -142,6 +142,36 @@ def availability_score(candidate, spec, today, half_life_days=45.0):
     return (0.25 + 0.75 * engagement) * notice_factor
 
 
+# Ownership language: the candidate drove the work. Hedge language: the
+# candidate was adjacent to the work or is still aspiring to it. Two
+# profiles can mention the same technologies while sitting on opposite
+# sides of this line, and recruiters read the difference instantly.
+OWNERSHIP_MARKERS = [
+    "owned", "led ", "designed", "from scratch", "end-to-end", "end to end",
+    "rolled out", "drove", "architected", "shipped", "serving", "queries per",
+    "at scale", "migrated", "migration", "built and", "rebuilt", "a/b test",
+    "production rollout", "incident", "on-call", "p95", "latency",
+]
+HEDGE_MARKERS = [
+    "lightweight", "lighter weight", "handled by the platform team",
+    "pure ml side", "side project", "kaggle", "self-directed",
+    "online courses", "dashboard", "analytics side", "building competence",
+    "want to grow", "looking to grow", "transitioning toward",
+    "self-learner", "played with", "experimented with", "curious about",
+    "adjacent ml exposure", "some basic ml", "not the core",
+]
+
+
+def ownership_score(candidate, evidence_text=None):
+    """Ratio of ownership language to hedge language across the career
+    descriptions and summary. Returns roughly 0.3 (all hedges) to 1.0
+    (clear ownership)."""
+    text = evidence_text or candidate_evidence_text(candidate)
+    own = sum(1 for m in OWNERSHIP_MARKERS if m in text)
+    hedge = sum(1 for m in HEDGE_MARKERS if m in text)
+    return (1.0 + own) / (1.0 + own + 1.6 * hedge)
+
+
 def median(values):
     s = sorted(values)
     return s[len(s) // 2] if s else 0

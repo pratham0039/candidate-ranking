@@ -38,7 +38,7 @@ from jd_parser import parse_jd, jd_query_text, CONCEPT_LEXICONS  # noqa: E402
 from consistency import consistency_violations  # noqa: E402
 from features import (candidate_evidence_text, evidence_score, yoe_score,  # noqa: E402
                       location_score, availability_score, penalty_factors,
-                      engineering_title_gate)
+                      engineering_title_gate, ownership_score)
 from rank import load_relevance_artifacts, minmax  # noqa: E402
 
 ART = os.path.join(HERE, "artifacts")
@@ -98,6 +98,7 @@ def collect_factors(candidates_path, spec, today):
                 "loc": location_score(c, spec),
                 "avail": availability_score(c, spec, today),
                 "pen": pen,
+                "own": ownership_score(c, text),
             })
             texts.append(text)
 
@@ -121,6 +122,7 @@ def collect_factors(candidates_path, spec, today):
         "loc": np.array([r["loc"] for r in rows]),
         "avail": np.array([r["avail"] for r in rows]),
         "pen": np.array([r["pen"] for r in rows]),
+        "own": np.array([r["own"] for r in rows]),
     }
     return ids, factors
 
@@ -134,7 +136,8 @@ def score_with(weights, factors):
             * factors["yoe"] ** weights["w_yoe"]
             * factors["loc"] ** weights["w_loc"]
             * factors["avail"] ** weights["w_avail"]
-            * factors["pen"] ** weights["w_pen"])
+            * factors["pen"] ** weights["w_pen"]
+            * factors["own"] ** weights.get("w_own", 1.0))
 
 
 def sample_weights(rng):
@@ -150,6 +153,7 @@ def sample_weights(rng):
         "w_loc": rng.uniform(0.2, 1.5),
         "w_avail": rng.uniform(0.3, 1.5),
         "w_pen": rng.uniform(0.5, 2.5),
+        "w_own": rng.uniform(0.3, 3.0),
     }
 
 
