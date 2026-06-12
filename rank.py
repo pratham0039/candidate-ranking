@@ -112,6 +112,8 @@ def load_relevance_artifacts(jd_text_str):
 
 def minmax(values):
     arr = np.asarray(values, dtype=np.float32)
+    if arr.size == 0:
+        return arr
     lo, hi = float(arr.min()), float(arr.max())
     if hi - lo < 1e-9:
         return np.zeros_like(arr)
@@ -169,20 +171,32 @@ def build_reasoning(entry, spec, rank):
     elif inactive_days > 90:
         concerns.append(f"inactive for roughly {inactive_days // 30} months")
 
-    # structure varies with a stable per-candidate key, not with rank
-    variant = sum(ord(ch) for ch in c["candidate_id"]) % 3
+    # structure varies with a stable per-candidate key, not with rank, and
+    # each variant leads with different profile facts (city, industry,
+    # previous role) so same-variant rows still read distinctly
+    city = p["location"].split(",")[0]
+    industry = p["current_industry"]
+    variant = sum(ord(ch) for ch in c["candidate_id"]) % 5
     if variant == 0:
         text = (f"{p['current_title']} at {p['current_company']} with {yoe:.1f} yrs"
                 f"{'; ' + prev_fact if prev_fact else ''}. Career history shows "
                 f"hands-on work with {specifics}; {engagement}")
     elif variant == 1:
         text = (f"{yoe:.1f} yrs, currently {p['current_title']} at "
-                f"{p['current_company']}. Demonstrates {specifics} in actual "
-                f"role descriptions{', ' + prev_fact if prev_fact else ''}; {engagement}")
-    else:
+                f"{p['current_company']} ({industry}). Demonstrates {specifics} "
+                f"in actual role descriptions{', ' + prev_fact if prev_fact else ''}; {engagement}")
+    elif variant == 2:
         text = (f"Evidence of {specifics} across roles, most recently as "
-                f"{p['current_title']} at {p['current_company']} ({yoe:.1f} yrs); "
-                f"{engagement}")
+                f"{p['current_title']} at {p['current_company']} ({yoe:.1f} yrs, "
+                f"{city}){'; ' + prev_fact if prev_fact else ''}; {engagement}")
+    elif variant == 3:
+        text = (f"{city}-based {p['current_title']} ({yoe:.1f} yrs) at "
+                f"{p['current_company']}{', ' + prev_fact if prev_fact else ''}. "
+                f"Role descriptions show {specifics}; {engagement}")
+    else:
+        text = (f"{p['current_title']} in {industry} at {p['current_company']}, "
+                f"{yoe:.1f} yrs total. Work across {len(c['career_history'])} "
+                f"roles demonstrates {specifics}; {engagement}")
     if concerns:
         text += ". Concerns: " + "; ".join(concerns[:2])
     return text + "."

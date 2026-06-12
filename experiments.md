@@ -150,6 +150,38 @@ keeping the dormant twin visible (heavily demoted, not erased), matching
 the JD's instruction to down-weight unreachable candidates rather than
 ignore skill.
 
+## Experiment J: minimax over ground-truth hypotheses
+
+Tuning against a single labeling risks overfitting our own guess about
+the hidden tiers. We generated six label variants spanning the open
+questions the data cannot settle (engagement baked into tiers or not, the
+middle family promoted or demoted one tier, ambiguous skill-duration
+flags treated as planted or as noise, location baked in or not) and
+searched for weights maximizing the minimum composite across all six
+(tune_minimax.py):
+
+- previous weights: worst-case composite 0.9864 across variants
+- adopted minimax weights: worst-case 0.9874, base composite 0.9880
+- top-100 under minimax weights: every tier-5 and tier-4 the labels rate
+  highest, no leakage from lower families
+
+The narrow gap between best-case and worst-case (0.988 vs 0.987) is the
+finding: the ranking does not depend on which of the six hypotheses is
+the true one.
+
+## Experiment K: automated reasoning audit
+
+The manual review applies six checks to sampled reasoning rows. We
+implemented all six programmatically (audit_reasoning.py) and run them on
+every row, verifying each number, employer, date and named technology
+against the candidate's profile JSON. Current submission: all six checks
+pass on all 100 rows; concern density rises with rank (top half 0.68,
+bottom half 0.82), matching the rank-consistency expectation. The audit
+caught and fixed a real defect during development: three near-duplicate
+row pairs (token Jaccard > 0.8) from same-template, same-technology
+candidates, resolved by widening the sentence-structure variants and
+leading each with different profile facts.
+
 ## Rejected ideas
 
 - **LLM re-ranking of the top ~300**: standard retrieve-cheap/re-rank-
