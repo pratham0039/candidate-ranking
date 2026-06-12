@@ -43,13 +43,19 @@ compute:
 # ============================================================================
 ai_tools_used:
   - "Claude"
+  - "Cursor"
+  - "ChatGPT"
+  - "Gemini"
 
 ai_usage_summary: |
-  Used Claude (Claude Code) as a pair programmer: architecture discussion,
-  code drafting and review, and data exploration. All design decisions,
-  the scoring methodology, and final code review were done by the team.
-  No candidate data was sent to any hosted LLM; the ranking step makes no
-  network calls.
+  Claude (via Claude Code) was the primary pair programmer, used inside
+  Cursor: architecture discussion, code drafting, data exploration, and
+  experiment design. ChatGPT and Gemini were used as independent review
+  agents: we fed them our approach and code and folded their critiques
+  back into the pipeline (several experiments in experiments.md originate
+  from those reviews). All design decisions, the scoring methodology, and
+  acceptance of every change were made by the team. The ranking step
+  itself makes no network calls and uses no LLM at inference time.
 
 # ============================================================================
 # Approach summary (optional but recommended)
