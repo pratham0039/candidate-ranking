@@ -49,6 +49,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "src"))
 
 from jd_parser import parse_jd, jd_query_text, CONCEPT_LEXICONS  # noqa: E402
+from constants import REFERENCE_DATE  # noqa: E402
 from consistency import consistency_violations  # noqa: E402
 from features import (candidate_evidence_text, evidence_score, yoe_score,  # noqa: E402
                       location_score, availability_score, penalty_factors,
@@ -140,12 +141,15 @@ def build_reasoning(entry, spec, rank):
 
     # one concrete career fact: previous employer if any
     prev = [j for j in c["career_history"] if not j["is_current"]]
-    prev_fact = f"previously {prev[0]['title']} at {prev[0]['company']}" if prev else ""
+    prev_fact = ""
+    if prev:
+        last_prev = max(prev, key=lambda j: j["start_date"])
+        prev_fact = f"previously {last_prev['title']} at {last_prev['company']}"
 
-    inactive_days = (date(2026, 6, 11) - date(*map(int, rs["last_active_date"].split("-")))).days
+    inactive_days = (REFERENCE_DATE - date(*map(int, rs["last_active_date"].split("-")))).days
     if inactive_days <= 45 and rs["recruiter_response_rate"] >= 0.5:
         engagement = (f"replies to {rs['recruiter_response_rate']:.0%} of recruiter "
-                      f"messages and was active this month")
+                      f"messages, last active {rs['last_active_date']}")
     elif rs["open_to_work_flag"]:
         engagement = f"open to work with a {rs['notice_period_days']}-day notice"
     else:
@@ -193,7 +197,7 @@ def main():
     ap.add_argument("--top", type=int, default=100)
     args = ap.parse_args()
 
-    today = date(2026, 6, 11)
+    today = REFERENCE_DATE
     weights = load_weights(args.weights)
     spec = parse_jd(open(args.jd).read())
     query = jd_query_text(spec)

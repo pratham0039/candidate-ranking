@@ -32,6 +32,11 @@ pip install -r requirements.txt
 #    takes ~15 min on a laptop CPU, allowed to exceed the ranking budget)
 python precompute.py --candidates path/to/candidates.jsonl
 
+# 1b. SHORTCUT: skip the precompute by downloading the prebuilt artifacts
+#     from the GitHub release instead:
+#     https://github.com/pratham0039/India_runs/releases/tag/artifacts-v1
+#     Place embeddings.npz, tfidf.pkl, jd_embedding.npy into artifacts/
+
 # 2. Ranking step (CPU only, no network, well under 5 minutes)
 python rank.py --candidates path/to/candidates.jsonl \
                --jd data/job_description.md \

@@ -40,6 +40,7 @@ from features import (candidate_evidence_text, evidence_score, yoe_score,  # noq
                       location_score, availability_score, penalty_factors,
                       engineering_title_gate, ownership_score)
 from rank import load_relevance_artifacts, minmax  # noqa: E402
+from constants import REFERENCE_DATE  # noqa: E402
 
 ART = os.path.join(HERE, "artifacts")
 
@@ -166,7 +167,7 @@ def main():
     ap.add_argument("--top", type=int, default=100)
     args = ap.parse_args()
 
-    today = date(2026, 6, 11)
+    today = REFERENCE_DATE
     spec = parse_jd(open(os.path.join(HERE, "data", "job_description.md")).read())
     labels = load_labels(args.labels)
 

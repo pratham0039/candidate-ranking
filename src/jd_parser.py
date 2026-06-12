@@ -107,7 +107,6 @@ class JDSpec:
     country: str = "India"
     preferred_cities: list = field(default_factory=list)
     welcome_cities: list = field(default_factory=list)
-    relocation_ok: bool = True
     visa_sponsorship: bool = False
     notice_pref_days: int = 30
     notice_buyout_days: int = 30
@@ -139,8 +138,9 @@ def parse_jd(text):
     if m:
         spec.title = m.group(1).strip()
 
-    # Experience band: "Experience Required: 5–9 years" (any dash variant)
-    m = re.search(r"(\d+)\s*[-–—to]+\s*(\d+)\s*(?:\+\s*)?years", text, re.I)
+    # Experience band: "Experience Required: 5–9 years" (any dash variant
+    # or the word "to")
+    m = re.search(r"(\d+)\s*(?:[-–—]+|to)\s*(\d+)\s*(?:\+\s*)?years", text, re.I)
     if m:
         spec.yoe_min, spec.yoe_max = float(m.group(1)), float(m.group(2))
         spec.yoe_ideal_min, spec.yoe_ideal_max = spec.yoe_min + 1, spec.yoe_max - 1
@@ -162,9 +162,13 @@ def parse_jd(text):
         spec.welcome_cities = [c for c in _find_cities(m.group(1))
                                if c not in spec.preferred_cities]
 
-    spec.visa_sponsorship = "sponsor" in text.lower() and \
-        "don't sponsor" not in text.lower() and "do not sponsor" not in text.lower()
-    spec.relocation_ok = "relocation" in text.lower()
+    # Sponsorship is offered only if "sponsor" appears without a nearby
+    # negation ("don't / do not / cannot / won't / no ... sponsor")
+    low = text.lower()
+    spec.visa_sponsorship = bool(
+        re.search(r"\bsponsor", low)
+        and not re.search(r"\b(?:don'?t|do not|cannot|can'?t|won'?t|no)\b[^.]{0,40}sponsor", low)
+    )
 
     # Notice period preferences ("sub-30-day notice", "buy out up to 30 days")
     m = re.search(r"sub-?(\d+)-?day notice", text, re.I)
@@ -195,7 +199,7 @@ if __name__ == "__main__":
     print(f"yoe band        : {spec.yoe_min}-{spec.yoe_max} (ideal {spec.yoe_ideal_min}-{spec.yoe_ideal_max})")
     print(f"preferred cities: {spec.preferred_cities}")
     print(f"welcome cities  : {spec.welcome_cities}")
-    print(f"visa sponsorship: {spec.visa_sponsorship}, relocation_ok: {spec.relocation_ok}")
+    print(f"visa sponsorship: {spec.visa_sponsorship}")
     print(f"notice          : prefer <={spec.notice_pref_days}d, buyout {spec.notice_buyout_days}d")
     print(f"must-have       : {spec.must_have}")
     print(f"nice-to-have    : {spec.nice_to_have}")

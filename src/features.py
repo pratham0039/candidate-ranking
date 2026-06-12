@@ -219,11 +219,16 @@ def engineering_title_gate(candidate):
     tech_markers = (
         "software", "developer", "devops", "cloud", "frontend", "backend",
         "full stack", "mobile", "qa engineer", "data", "analytics",
-        "ml", "machine learning", "ai ", "nlp", "search", "recommendation",
+        "ml", "machine learning", "nlp", "search", "recommendation",
         "scientist", "programmer", "sde", "swe", "java", ".net",
         "computer vision", "applied",
     )
     titles = [candidate["profile"]["current_title"].lower()] + [
         j["title"].lower() for j in candidate["career_history"]
     ]
-    return any(any(m in t for m in tech_markers) for t in titles)
+    # pad with spaces so "ai" matches as a word ("Head of AI", "AI Lead")
+    # without matching inside words like "trainer"
+    return any(
+        any(m in t for m in tech_markers) or " ai " in f" {t} "
+        for t in titles
+    )

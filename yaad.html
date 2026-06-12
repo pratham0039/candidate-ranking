@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FikarNot, Ideathon Track 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Manrope:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15211B;
+    --paper:#FBF8F1;
+    --green:#1B8A55;
+    --green-deep:#0E5634;
+    --bubble-out:#DCF5C8;
+    --bubble-in:#FFFFFF;
+    --chat-bg:#EDE7DC;
+    --amber:#E08F1F;
+    --amber-soft:#FCEFD8;
+    --muted:#62705F;
+    --line:#D8D2C4;
+    --disp:"Bricolage Grotesque",sans-serif;
+    --body:"Manrope",sans-serif;
+    --mono:"IBM Plex Mono",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{background:#222}
+  body{font-family:var(--body);color:var(--ink)}
+  .slide{
+    width:1280px;height:720px;
+    background:var(--paper);
+    margin:24px auto;position:relative;overflow:hidden;
+    padding:64px 72px;
+    display:flex;flex-direction:column;
+  }
+  @media print{
+    html,body{background:#fff}
+    .slide{margin:0;page-break-after:always;break-after:page}
+    @page{size:1280px 720px;margin:0}
+  }
+  .eyebrow{
+    font-family:var(--mono);font-size:13px;letter-spacing:.12em;
+    color:var(--green-deep);text-transform:uppercase;
+    display:flex;align-items:center;gap:12px;margin-bottom:18px;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--green)}
+  h1{font-family:var(--disp);font-weight:700;font-size:108px;line-height:.98;letter-spacing:-.02em}
+  h2{font-family:var(--disp);font-weight:600;font-size:46px;line-height:1.08;letter-spacing:-.01em;margin-bottom:14px}
+  h3{font-family:var(--disp);font-weight:600;font-size:21px;margin-bottom:6px}
+  p{font-size:17px;line-height:1.55}
+  .lead{font-size:21px;line-height:1.5;color:var(--ink);max-width:560px}
+  .muted{color:var(--muted)}
+  .pageno{
+    position:absolute;bottom:28px;right:40px;
+    font-family:var(--mono);font-size:12px;color:var(--muted);
+  }
+  .footnote{
+    position:absolute;bottom:28px;left:72px;
+    font-family:var(--mono);font-size:12px;color:var(--muted);
+  }
+  .ticklist{list-style:none;margin-top:14px}
+  .ticklist li{
+    padding-left:34px;position:relative;margin-bottom:13px;
+    font-size:17px;line-height:1.5;
+  }
+  .ticklist li::before{
+    content:"✓✓";position:absolute;left:0;top:1px;
+    color:var(--green);font-family:var(--mono);font-size:14px;letter-spacing:-.18em;
+  }
+  .cols{display:flex;gap:48px;flex:1;align-items:center}
+  .col{flex:1}
+  /* ---------- chat components ---------- */
+  .phone{
+    background:var(--chat-bg);border-radius:18px;overflow:hidden;
+    box-shadow:0 1px 0 var(--line), inset 0 0 0 1px var(--line);
+    display:flex;flex-direction:column;
+  }
+  .phone-head{
+    background:var(--green-deep);color:#fff;padding:10px 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .avatar{
+    width:26px;height:26px;border-radius:50%;background:var(--green);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--disp);font-weight:700;font-size:13px;color:#fff;flex:none;
+  }
+  .phone-head .name{font-size:13.5px;font-weight:700}
+  .phone-head .status{font-size:10.5px;opacity:.75;font-family:var(--mono)}
+  .phone-body{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .msg{
+    max-width:86%;padding:8px 11px;border-radius:10px;
+    font-size:13px;line-height:1.45;position:relative;
+  }
+  .msg.in{background:var(--bubble-in);align-self:flex-start;border-top-left-radius:3px}
+  .msg.out{background:var(--bubble-out);align-self:flex-end;border-top-right-radius:3px}
+  .msg .meta{
+    display:block;text-align:right;font-family:var(--mono);
+    font-size:9px;color:var(--muted);margin-top:4px;
+  }
+  .msg .meta .tick{color:#3FA9F5;letter-spacing:-.2em}
+  .fwd{
+    font-family:var(--mono);font-size:9.5px;color:var(--muted);
+    display:flex;align-items:center;gap:5px;margin-bottom:5px;font-style:normal;
+  }
+  .fwd::before{content:"➤";font-size:9px}
+  .doc{
+    background:#F2EEE5;border:1px solid var(--line);border-radius:7px;
+    padding:8px 10px;display:flex;gap:8px;align-items:center;margin-bottom:6px;
+  }
+  .doc .icon{
+    width:26px;height:32px;background:#fff;border:1px solid var(--line);
+    border-radius:3px;position:relative;flex:none;
+  }
+  .doc .icon::before{
+    content:"";position:absolute;left:4px;right:4px;top:6px;height:2px;
+    background:var(--line);box-shadow:0 5px 0 var(--line),0 10px 0 var(--line);
+  }
+  .doc .fname{font-size:11px;font-weight:700}
+  .doc .fmeta{font-family:var(--mono);font-size:9px;color:var(--muted)}
+  .alert-line{
+    background:var(--amber-soft);border-left:3px solid var(--amber);
+    padding:6px 9px;border-radius:0;margin-top:6px;font-size:12.5px;
+  }
+  .chip{
+    display:inline-block;background:#fff;border:1px solid var(--green);
+    color:var(--green-deep);border-radius:14px;padding:3px 11px;
+    font-size:11px;font-weight:700;margin:5px 4px 0 0;
+  }
+  /* ---------- title slide ---------- */
+  .title-slide{justify-content:center}
+  .title-grid{display:flex;align-items:center;gap:64px}
+  .brand-hindi{
+    font-family:var(--disp);font-size:26px;color:var(--green);
+    font-weight:600;margin-top:10px;
+  }
+  .tagline{
+    font-size:24px;margin-top:22px;max-width:520px;line-height:1.45;
+  }
+  .tagline b{color:var(--green-deep)}
+  /* ---------- cards ---------- */
+  .cardrow{display:flex;gap:20px;margin-top:26px}
+  .card{
+    flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:22px 22px 20px;
+  }
+  .card .knum{
+    font-family:var(--mono);font-size:11px;color:var(--green);
+    letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:block;
+  }
+  .card p{font-size:15px;line-height:1.5;color:#3C4A3F}
+  .card.amber{background:var(--amber-soft);border-color:#EBCB95}
+  .card.amber .knum{color:var(--amber)}
+  /* ---------- fields (team slide) ---------- */
+  .field{border-bottom:2px solid var(--ink);padding:26px 0 10px;display:flex;gap:18px;align-items:baseline}
+  .field .label{font-family:var(--mono);font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;width:230px;flex:none}
+  .field .value{font-family:var(--disp);font-size:26px;font-weight:600}
+  .value .ph{color:#B9B2A2}
+  /* ---------- group chaos visual ---------- */
+  .grouplist{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .grow{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid #EFEAE0;align-items:center}
+  .grow:last-child{border-bottom:none}
+  .gava{width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:15px;color:#fff}
+  .grow .gt{flex:1;min-width:0}
+  .grow .gname{font-size:14.5px;font-weight:700}
+  .grow .gprev{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:330px}
+  .badge{background:var(--green);color:#fff;font-size:11px;font-weight:700;border-radius:11px;padding:2px 8px;font-family:var(--mono)}
+  .gtime{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:right}
+  .src{font-family:var(--mono);font-size:9.5px;color:var(--muted);border:1px dashed var(--line);border-radius:6px;padding:4px 7px;margin-top:6px;background:#FAF7F0}
+  .cmp{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .cmp th,.cmp td{padding:9px 16px;font-size:14.5px;text-align:center;border-bottom:1px solid #EFEAE0}
+  .cmp th{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#F6F2E9}
+  .cmp td:first-child,.cmp th:first-child{text-align:left;font-weight:700;font-size:14.5px}
+  .cmp tr:last-child td{border-bottom:none}
+  .cmp .y{color:var(--green);font-weight:700}
+  .cmp .n{color:#C2BBAA}
+  .cmp .fk{background:#F1F7EC}
+</style>
+</head>
+<body>
+
+<!-- ================= SLIDE 1 · TITLE ================= -->
+<section class="slide title-slide">
+  <div class="eyebrow">Ideathon · Track 3 · Improve everyday life with AI</div>
+  <div class="title-grid">
+    <div style="flex:1.15">
+      <h1 style="font-size:96px">FikarNot</h1>
+      <div class="brand-hindi">फ़िक्र नॉट · "don't worry, it's handled"</div>
+      <p class="tagline" style="font-family:var(--disp);font-weight:600;font-size:34px;color:var(--green-deep)">"Forward karo, fikar nahi."</p>
+      <p class="tagline" style="margin-top:14px;font-size:19px">One WhatsApp number for everything you'd otherwise forget.<br><b>It doesn't just remember. It notices.</b></p>
+      <div style="margin-top:26px">
+        <span class="chip">Zero install</span><span class="chip">Voice-first</span><span class="chip">30+ Indian languages</span><span class="chip">Cohort memory</span><span class="chip">Designed for Redrob</span>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div class="phone" style="width:380px">
+        <div class="phone-head">
+          <div class="avatar">F</div>
+          <div><div class="name">FikarNot</div><div class="status">always remembers</div></div>
+        </div>
+        <div class="phone-body">
+          <div class="msg out">
+            <div class="fwd">Forwarded</div>
+            <div class="doc"><div class="icon"></div><div><div class="fname">Sem-6_Exam_Timetable.jpg</div><div class="fmeta">IMG · 2.1 MB</div></div></div>
+            <span class="meta">9:14 PM <span class="tick">✓✓</span></span>
+          </div>
+          <div class="msg in">Saved ✓ Got your Sem-6 timetable, 5 exams, 12–23 June. DBMS is next: <b>19 June, 9 AM</b>. I'll nudge you the evening before each one.<span class="meta">9:14 PM</span></div>
+          <div class="msg out">kal kya hai?<span class="meta">9:15 PM <span class="tick">✓✓</span></span></div>
+          <div class="msg in">Kal kuch nahi 🙂 Next up: hostel mess closes early Wednesday (from the mess notice you forwarded).<span class="meta">9:15 PM</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footnote">Pratham Team · Redrob Ideathon 2026</div>
+  <div class="pageno">01</div>
+</section>
+
+<!-- ================= SLIDE 2 · TEAM ================= -->
+<section class="slide" style="justify-content:center">
+  <div class="eyebrow">Submission details</div>
+  <div class="field"><div class="label">Team name</div><div class="value">Pratham Team</div></div>
+  <div class="field"><div class="label">Team members</div><div class="value">Pratham <span class="ph" style="font-size:18px">(solo)</span></div></div>
+  <div class="field"><div class="label">Problem statement</div><div class="value">Track 3, Improve everyday life with AI</div></div>
+  <div class="pageno">02</div>
+</section>
+
+<!-- ================= SLIDE 3 · PROBLEM ================= -->
+<section class="slide">
+  <div class="eyebrow">The problem we want to solve</div>
+  <div class="cols">
+    <div class="col" style="flex:1.1">
+      <h2>Life in India arrives as a forward.</h2>
+      <p class="lead">Exam timetables, fee circulars, water-cut notices, placement drives, they reach you as blurry JPEGs and rambling voice notes, buried inside a dozen WhatsApp groups.</p>
+      <ul class="ticklist">
+        <li><b>Who faces it:</b> a student is in 15+ college groups; a parent in school and society groups; an office-goer in team and PG groups. Everyone.</li>
+        <li><b>The failure mode:</b> the information was delivered, but never <i>captured</i>. It scrolls away, and the deadline arrives unannounced.</li>
+        <li><b>Why it matters:</b> a missed placement registration, a fee late-fine, an exam clash discovered too late. Small misses, real consequences.</li>
+      </ul>
+      <p class="muted" style="margin-top:18px;font-size:15px">Calendar apps assume people will type structured events. Nobody does. The information already lives in WhatsApp, the capture should too.</p>
+    </div>
+    <div class="col">
+      <div class="grouplist">
+        <div class="grow"><div class="gava" style="background:#7A6BC9">T</div><div class="gt"><div class="gname">TPO Placements 2026 🎓</div><div class="gprev">Infosys drive 19 June, CGPA 7.5+, last date…</div></div><div><div class="gtime">11:42 PM</div><div style="text-align:right;margin-top:3px"><span class="badge">87</span></div></div></div>
+        <div class="grow"><div class="gava" style="background:#C96B6B">S</div><div class="gt"><div class="gname">Sunshine Apts · Block C</div><div class="gprev">📷 Photo · NOTICE: Water supply suspended tom…</div></div><div><div class="gtime">9:03 PM</div><div style="text-align:right;margin-top:3px"><span class="badge">142</span></div></div></div>
+        <div class="grow"><div class="gava" style="background:#5B9E63">C</div><div class="gt"><div class="gname">CSE-B Official ⚡</div><div class="gprev">📷 Photo · revised Sem-6 exam timetable final…</div></div><div><div class="gtime">8:55 PM</div><div style="text-align:right;margin-top:3px"><span class="badge">56</span></div></div></div>
+        <div class="grow"><div class="gava" style="background:#C9A23F">M</div><div class="gt"><div class="gname">Mummy ❤️</div><div class="gprev">🎤 Voice message · 1:47</div></div><div><div class="gtime">8:31 PM</div><div style="text-align:right;margin-top:3px"><span class="badge">3</span></div></div></div>
+        <div class="grow"><div class="gava" style="background:#6B9EC9">H</div><div class="gt"><div class="gname">Hostel D, Warden notices</div><div class="gprev">📷 Photo · mess timing change w.e.f. Wednesday…</div></div><div><div class="gtime">7:18 PM</div><div style="text-align:right;margin-top:3px"><span class="badge">29</span></div></div></div>
+      </div>
+      <p class="muted" style="margin-top:14px;font-size:14px;text-align:center;font-family:var(--mono)">371 unread · 4 deadlines hiding inside</p>
+    </div>
+  </div>
+  <div class="pageno">03</div>
+</section>
+
+<!-- ================= SLIDE 4 · IDEA OVERVIEW ================= -->
+<section class="slide">
+  <div class="eyebrow">Idea overview</div>
+  <h2>My memory. Our memory. My radar.</h2>
+  <p class="lead" style="max-width:900px">FikarNot is one WhatsApp contact. The capture gesture is the forward button, no app, no forms. On top of it sit three layers of intelligence, each one harder to copy than the last.</p>
+  <div class="cardrow">
+    <div class="card"><span class="knum">Layer 1 · Personal</span><h3>A memory that notices</h3><p>Forward anything and it remembers, reminds, and connects facts across weeks: your train ticket vs. your exam vs. your fee deadline. Reminder apps remember. <b>FikarNot notices.</b></p></div>
+    <div class="card amber"><span class="knum">Layer 2 · Collective, the moat</span><h3>One forwards. All covered.</h3><p>When any classmate forwards a notice, the cohort's shared memory (opt-in) gets it, even the student who was asleep. And consensus across copies auto-fixes blurry reads.</p></div>
+    <div class="card" style="border:1.5px solid var(--green-deep)"><span class="knum" style="color:var(--green-deep)">Layer 3 · Career radar, only Redrob</span><h3>Notices that know your future</h3><p>A placement notice comes back eligibility-checked against Redrob's job data: <i>"CGPA cutoff 7.5, you qualify (yours: 8.1). Want to prep the interview on Redrob?"</i></p></div>
+  </div>
+  <div style="display:flex;gap:48px;margin-top:30px;align-items:flex-start">
+    <div style="flex:1">
+      <h3 style="color:var(--green-deep)">Why only Redrob can ship this</h3>
+      <p style="font-size:15px;max-width:560px">Layer 3 is the un-copyable part: eligibility checks, resume matching, and interview prep run on Redrob's hiring data: profiles, postings, and placement signals no general assistant or wrapper bot has. Every TPO notice in India becomes a Redrob job-funnel entry, arriving via WhatsApp.</p>
+    </div>
+    <div style="flex:1">
+      <h3 style="color:var(--green-deep)">Fit with the Redrob ecosystem</h3>
+      <p style="font-size:15px;max-width:560px">FikarNot turns Redrob from a tool users visit occasionally into a companion that messages them every morning, running affordably at Bharat scale on Redrob's stated low-cost LLM stack, in the 30+ languages the platform publicly supports. The understanding layer is model-agnostic, Redrob's data, not any single model, is the moat.</p>
+    </div>
+  </div>
+  <div class="pageno">04</div>
+</section>
+
+<!-- ================= COMPETITION ================= -->
+<section class="slide">
+  <div class="eyebrow">The elephant in the room</div>
+  <h2>"Won't Meta just build this?"</h2>
+  <p class="lead" style="max-width:1000px;margin-bottom:16px">Fair question: Meta AI ships natively in WhatsApp. But general assistants optimize for <i>answering when asked</i>; FikarNot optimizes for <i>not forgetting</i>.</p>
+  <table class="cmp">
+    <tr><th>Capability</th><th>Meta AI in WhatsApp</th><th>Calendar / reminder apps</th><th>GPT-wrapper PA bots</th><th class="fk">FikarNot</th></tr>
+    <tr><td>Speaks up unprompted, at the right moment</td><td class="n">—</td><td class="y">✓ <span class="muted" style="font-weight:400;font-size:12px">if you typed it in</span></td><td class="n">—</td><td class="fk y">✓</td></tr>
+    <tr><td>Cross-memory conflict detection over weeks</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="fk y">✓ memory graph</td></tr>
+    <tr><td>Cohort memory, one forwards, all covered</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="fk y">✓ consensus reads</td></tr>
+    <tr><td>Built for blurry notices in 30+ Indian languages</td><td class="n">edge case</td><td class="n">—</td><td class="n">English-first</td><td class="fk y">✓ core workload</td></tr>
+    <tr><td>Source-grounded, confirm-before-save trust UX</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="fk y">✓</td></tr>
+    <tr><td>Career &amp; eligibility intelligence (job data)</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="fk y">✓ via Redrob</td></tr>
+  </table>
+  <p class="muted" style="margin-top:14px;font-size:14px">And the structural point: a chat assistant is a feature of WhatsApp. A memory of your life is a relationship; switching away means abandoning everything it knows about you. Memory compounds; chat doesn't.</p>
+  <div class="pageno">05</div>
+</section>
+
+
+<!-- ================= SLIDE 5 · UNDERSTANDING THE USER ================= -->
+<section class="slide">
+  <div class="eyebrow">Understanding the user</div>
+  <div class="cols">
+    <div class="col" style="flex:1.15">
+      <h2>I didn't research this problem.<br>I lived it.</h2>
+      <p class="lead">I'm Pratham, until recently a CSE student whose entire institutional life arrived as photos of printed notices in WhatsApp groups.</p>
+      <ul class="ticklist">
+        <li><b>My reality:</b> 15+ active groups, 300+ messages a day. The notice that decided my placement eligibility looked identical to a meme in the scroll.</li>
+        <li><b>My workaround:</b> screenshots I never found again, "saved messages" I never opened, texting friends <i>"bhai kal kya hai?"</i> the night before everything.</li>
+        <li><b>What I never once did:</b> open a calendar app and type "Infosys drive, 19 June, CGPA 7.5 cutoff." Structured entry is why every planner app failed me.</li>
+        <li><b>With FikarNot:</b> the moment a notice matters, I forward it, 2 seconds, inside the app I already live in. Done means done.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="phone" style="width:370px">
+        <div class="phone-head"><div class="avatar">F</div><div><div class="name">FikarNot</div><div class="status">always remembers</div></div></div>
+        <div class="phone-body">
+          <div class="msg out">mera next exam kab hai? kal clg jana hai kya?<span class="meta">10:02 PM <span class="tick">✓✓</span></span></div>
+          <div class="msg in">Kal college nahi, Pratham, study leave 🙂 Next exam: <b>DBMS, 19 June, 9 AM</b>, Block A. Aur ek baat: placement registration 17th ko close ho raha hai. ✓ done?<span class="meta">10:02 PM</span></div>
+          <div class="msg out">🎤 0:09, "nahi, remind me 17 morning"<span class="meta">10:03 PM <span class="tick">✓✓</span></span></div>
+          <div class="msg in">Done, 17 June, 8 AM. Fikar not 👍<span class="meta">10:03 PM</span></div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:12px;font-size:13.5px;text-align:center">My chat, my Hinglish, voice works the same.</p>
+    </div>
+  </div>
+  <div class="pageno">06</div>
+</section>
+
+<!-- ================= SLIDE 6 · USER JOURNEY ================= -->
+<section class="slide">
+  <div class="eyebrow">User journey · One week with FikarNot, four moments, escalating intelligence</div>
+  <div style="display:flex;gap:16px;flex:1;align-items:stretch;margin-top:6px">
+    <div style="flex:1;display:flex;flex-direction:column">
+      <div class="phone" style="flex:1">
+        <div class="phone-head"><div class="avatar">F</div><div><div class="name">FikarNot</div><div class="status">Mon · 8:10 PM</div></div></div>
+        <div class="phone-body">
+          <div class="msg out"><div class="fwd">Forwarded</div><div class="doc"><div class="icon"></div><div><div class="fname">timetable.jpg</div><div class="fmeta">matched: 14 identical copies</div></div></div><span class="meta">✓✓</span></div>
+          <div class="msg in">Saved ✓ Sem-6 timetable. 5 exams, 12–23 June.<div class="alert-line" style="background:#F1F7EC;border-left-color:var(--green)"><b>14 classmates in CSE-B already have this.</b> One date differed across copies, consensus says DBMS = <b>19 June</b>.</div></div>
+          <div class="msg out">woah ok 👍<span class="meta">✓✓</span></div>
+        </div>
+      </div>
+      <h3 style="margin-top:12px">1 · Our memory</h3>
+      <p style="font-size:13.5px" class="muted">Cohort memory (opt-in): a classmate's forward covers everyone, consensus across copies fixes blurry reads.</p>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column">
+      <div class="phone" style="flex:1">
+        <div class="phone-head"><div class="avatar">F</div><div><div class="name">FikarNot</div><div class="status">Wed · 6:00 PM</div></div></div>
+        <div class="phone-body">
+          <div class="msg in">Reminder 🔔 Hostel mess closes at 7:30 PM today. Don't come back to a locked door.<div class="src">📎 from the mess notice you forwarded Mon</div></div>
+          <div class="msg out">lifesaver 🙏<span class="meta">✓✓</span></div>
+        </div>
+      </div>
+      <h3 style="margin-top:12px">2 · It acts on time</h3>
+      <p style="font-size:13.5px" class="muted">Surfaced exactly when useful, every reminder cites its source notice.</p>
+    </div>
+    <div style="flex:1.08;display:flex;flex-direction:column">
+      <div class="phone" style="flex:1;box-shadow:0 0 0 2px var(--amber), 0 1px 0 var(--line)">
+        <div class="phone-head" style="background:#9C6A14"><div class="avatar" style="background:var(--amber)">F</div><div><div class="name">FikarNot</div><div class="status">Thu · 9:41 PM</div></div></div>
+        <div class="phone-body">
+          <div class="msg out"><div class="fwd">Forwarded</div><div class="doc"><div class="icon"></div><div><div class="fname">IRCTC_ticket.pdf</div><div class="fmeta">BLR → Patna · 18 Jun</div></div></div><span class="meta">✓✓</span></div>
+          <div class="msg in">Saved ✓ Train home, 18–22 June.<div class="alert-line">⚠ <b>This clashes with your DBMS exam on 19 June</b>: from the timetable you sent Monday. Reschedule the trip, or want the TT office contact?</div></div>
+        </div>
+      </div>
+      <h3 style="margin-top:12px;color:#9C6A14">3 · It notices, the USP</h3>
+      <p style="font-size:13.5px" class="muted">Two facts, sent days apart, connected the moment they collide.</p>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column">
+      <div class="phone" style="flex:1">
+        <div class="phone-head"><div class="avatar">F</div><div><div class="name">FikarNot</div><div class="status">Fri · 7:00 AM</div></div></div>
+        <div class="phone-body">
+          <div class="msg in"><b>Your day ahead ☀️</b><br>· <b>DBMS exam today 9 AM</b>, Block A<br>· ⚠ Infosys drive today, <b style="color:var(--green-deep)">you qualify</b> (8.1 vs 7.5 cutoff): drive runs till 5 PM, you're free by noon. Registered ✓<br>· Library books due, ₹10/day fine after today<br><span class="muted" style="font-size:11px">Nothing tomorrow. I'll stay quiet.</span></div>
+          <div class="msg in"><b>Semester receipt 🧾</b><br>2 fee fines avoided (<b>₹430</b>) · 1 exam clash caught · 1 placement deadline made.<div class="src">monthly summary, built to be screenshotted</div></div>
+        </div>
+      </div>
+      <h3 style="margin-top:12px">4 · A habit, and a radar</h3>
+      <p style="font-size:13.5px" class="muted">The 7 AM digest, eligibility-checked via Redrob, and a monthly receipt that quantifies the saves.</p>
+    </div>
+  </div>
+  <div class="pageno">07</div>
+</section>
+
+
+<!-- ================= TWO TIMELINES ================= -->
+<section class="slide">
+  <div class="eyebrow">The same week, twice</div>
+  <h2>One notice. Two endings.</h2>
+  <div style="display:flex;gap:28px;flex:1;margin-top:18px">
+    <div style="flex:1;background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px 30px">
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#A32D2D;margin-bottom:18px">Without FikarNot</div>
+      <div style="display:flex;gap:14px;margin-bottom:16px"><div style="flex:none;width:10px;height:10px;border-radius:50%;background:#C2BBAA;margin-top:5px"></div><div><b>Mon 8:10 PM</b>: revised timetable lands in CSE-B group. By morning it's buried under <b>371 unread messages</b>. Pratham never sees it.</div></div>
+      <div style="display:flex;gap:14px;margin-bottom:16px"><div style="flex:none;width:10px;height:10px;border-radius:50%;background:#C2BBAA;margin-top:5px"></div><div><b>Thu 9:41 PM</b>: he books a train home for the 18th. Nothing stops him. ₹1,240, confirmed.</div></div>
+      <div style="display:flex;gap:14px;margin-bottom:16px"><div style="flex:none;width:10px;height:10px;border-radius:50%;background:#E24B4A;margin-top:5px"></div><div><b>18 Jun, on the train</b>: a friend texts: <i>"bhai kal DBMS hai, kahan hai tu??"</i></div></div>
+      <div style="display:flex;gap:14px"><div style="flex:none;width:10px;height:10px;border-radius:50%;background:#A32D2D;margin-top:5px"></div><div><b>19 Jun</b>: exam missed. Supplementary paper, semester at risk, over a message he technically received.</div></div>
+      <div style="margin-top:22px;display:inline-block;background:#FCEBEB;color:#791F1F;border-radius:14px;padding:6px 16px;font-weight:700;font-size:14px">Outcome: 1 exam lost · ₹1,240 wasted</div>
+    </div>
+    <div style="flex:1;background:#fff;border:1.5px solid var(--green);border-radius:16px;padding:26px 30px">
+      <div style="font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--green-deep);margin-bottom:18px">With FikarNot</div>
+      <div style="display:flex;gap:14px;margin-bottom:16px"><div style="flex:none;width:10px;height:10px;border-radius:50%;background:var(--green);margin-top:5px"></div><div><b>Mon 8:10 PM</b>: same notice, same 371 unread. But <b>one classmate forwards it</b>: cohort memory now covers all of CSE-B, including Pratham, asleep.</div></div>
+      <div style="display:flex;gap:14px;margin-bottom:16px"><div style="flex:none;width:10px;height:10px;border-radius:50%;background:var(--green);margin-top:5px"></div><div><b>Thu 9:41 PM</b>: he forwards the same train ticket. Instant reply: <b>"This clashes with your DBMS exam on 19 June."</b></div></div>
+      <div style="display:flex;gap:14px;margin-bottom:16px"><div style="flex:none;width:10px;height:10px;border-radius:50%;background:var(--green);margin-top:5px"></div><div><b>Thu 9:44 PM</b>: rebooked to the 23rd evening, free cancellation window. FikarNot checked first: his last exam ends that morning.</div></div>
+      <div style="display:flex;gap:14px"><div style="flex:none;width:10px;height:10px;border-radius:50%;background:var(--green-deep);margin-top:5px"></div><div><b>19 Jun</b>: he writes the exam. <b>Fikar not.</b></div></div>
+      <div style="margin-top:22px;display:inline-block;background:#EAF3DE;color:#27500A;border-radius:14px;padding:6px 16px;font-weight:700;font-size:14px">Outcome: exam written · ₹0 lost · 59 classmates also covered</div>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:16px;font-size:14px">The notice was delivered both times. The difference isn't information. It's a memory that acts on it.</p>
+  <div class="pageno">08</div>
+</section>
+
+<!-- ================= SLIDE 7 · AI-POWERED EXPERIENCE ================= -->
+<section class="slide">
+  <div class="eyebrow">AI-powered experience</div>
+  <h2>Where the intelligence lives</h2>
+  <div class="cardrow" style="margin-top:18px">
+    <div class="card"><span class="knum">Understand</span><h3>Messy input → structured memory</h3><p>OCR on notice photos, speech recognition on voice notes, intent + entity extraction (event, date, person, action), across 30+ Indian languages and code-mixed Hinglish: exactly the workload a Redrob-scale multilingual stack is positioned to own. Low-confidence reads trigger a confirm, never a silent save.</p></div>
+    <div class="card"><span class="knum">Remember</span><h3>A memory graph, in two scopes</h3><p>Facts stored with relationships (dates, people, places) in two scopes: personal (private by default) and cohort (opt-in). Cohorts form from the notice itself: identical document fingerprints across opted-in users make one cohort, no group access needed, and copies cross-correct by consensus.</p></div>
+    <div class="card"><span class="knum">Notice</span><h3>Conflicts checked at two moments</h3><p>Every new memory is checked against the graph the instant it's written, and the whole graph is re-checked each morning. Catch clashes at upload; catch slow-burn ones at dawn.</p></div>
+    <div class="card"><span class="knum">Restraint</span><h3>Silence as a feature</h3><p>No daily "have a great day!" spam. FikarNot speaks only on signal, a real deadline, a real conflict. A muted bot is a dead bot. And three things FikarNot will never do: message the group, sell your data, chitchat.</p></div>
+  </div>
+  <p class="lead" style="margin-top:30px;max-width:980px">Why AI is essential: no rules engine can read a crumpled Marathi notice photographed at an angle, hear "agle mangalvaar" in a voice note and resolve it to a date, or judge that a train ticket and an exam timetable are talking about the same Tuesday.</p>
+  <div class="pageno">09</div>
+</section>
+
+<!-- ================= SLIDE 8 · ACCESSIBILITY & INCLUSIVITY ================= -->
+<section class="slide">
+  <div class="eyebrow">Accessibility &amp; inclusivity</div>
+  <div class="cols">
+    <div class="col" style="flex:1.2">
+      <h2>If you can forward,<br>you can use FikarNot.</h2>
+      <ul class="ticklist" style="margin-top:22px">
+        <li><b>Zero install, zero onboarding.</b> No app download, no sign-up form, no storage on a budget phone. WhatsApp is the install base.</li>
+        <li><b>Voice-first, any language.</b> Ask and answer by voice note in 30+ Indian languages, FikarNot replies in the language you spoke. Literacy is not a requirement.</li>
+        <li><b>Made for shaky hands and shaky photos.</b> Tilted, cropped, low-light notice photos are the expected input, not an edge case.</li>
+        <li><b>Privacy by design.</b> Personal memories stay private, cohort memory is opt-in and holds only group-circulated notices, never personal items. Say <i>"yeh bhool jao"</i> and it's gone, consent and erasure in line with India's DPDP Act.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="phone" style="width:360px">
+        <div class="phone-head"><div class="avatar">F</div><div><div class="name">FikarNot</div><div class="status">ಕನ್ನಡ · हिंदी · தமிழ் +30</div></div></div>
+        <div class="phone-body">
+          <div class="msg out">🎤 0:14, ಧ್ವನಿ ಸಂದೇಶ (Kannada voice note)<span class="meta">✓✓</span></div>
+          <div class="msg in">ಆಯ್ತು ✓ ನಿಮ್ಮ ವಿದ್ಯುತ್ ಬಿಲ್, ಕೊನೆಯ ದಿನಾಂಕ <b>20 ಜೂನ್</b>. ಹಿಂದಿನ ದಿನ ನೆನಪಿಸುತ್ತೇನೆ.<span class="meta">just now</span></div>
+          <div class="msg out">yeh bhool jao<span class="meta">✓✓</span></div>
+          <div class="msg in">Done, forgotten permanently. 🗑<span class="meta">just now</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pageno">10</div>
+</section>
+
+<!-- ================= SLIDE 9 · IMPACT ================= -->
+<section class="slide">
+  <div class="eyebrow">Impact &amp; real-world benefits</div>
+  <h2>Small misses, eliminated.<br>Daily presence, earned.</h2>
+  <div class="cardrow" style="margin-top:24px">
+    <div class="card"><span class="knum">For users</span><h3>Deadlines stop being ambushes</h3><p>Placement registrations, fee fines, exam clashes, expired notices, the everyday losses that come not from laziness but from information drowning in group chat noise.</p></div>
+    <div class="card"><span class="knum">For communities</span><h3>Groups become reliable</h3><p>Society secretaries, wardens, and TPOs already broadcast on WhatsApp. FikarNot makes those broadcasts land, without changing anything about how they work today.</p></div>
+    <div class="card"><span class="knum">For Redrob</span><h3>From a visit to a relationship</h3><p>Today, users open Redrob when they need a job or a resume. FikarNot makes Redrob the first message of their morning, a daily touchpoint feeding every other Redrob surface.</p></div>
+  </div>
+  <p class="lead" style="margin-top:24px;max-width:960px">Distribution is built in: launch to Redrob's existing student base across Indian campuses, who onboard their families. Every "forward this number to mummy" is organic growth.</p>
+  <div style="display:flex;gap:20px;margin-top:20px">
+    <div style="flex:1;border-top:3px solid var(--green);padding-top:10px"><span style="font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">How we'd know it's working</span></div>
+    <div style="flex:1.2;border-top:3px solid var(--line);padding-top:10px"><b style="font-family:var(--disp)">Forwards / user / week</b><br><span class="muted" style="font-size:13.5px">the habit is forming</span></div>
+    <div style="flex:1.2;border-top:3px solid var(--line);padding-top:10px"><b style="font-family:var(--disp)">Reminders acted on</b><br><span class="muted" style="font-size:13.5px">they're useful, not noise</span></div>
+    <div style="flex:1.2;border-top:3px solid var(--line);padding-top:10px"><b style="font-family:var(--disp)">Saves: deadlines caught</b><br><span class="muted" style="font-size:13.5px">quantified monthly in the receipt, "₹430 saved"</span></div>
+  </div>
+  <div class="pageno">11</div>
+</section>
+
+<!-- ================= SLIDE 11 · FUTURE POTENTIAL ================= -->
+<section class="slide">
+  <div class="eyebrow">Future potential</div>
+  <h2>From remembering, to noticing, to acting</h2>
+  <div class="cardrow" style="margin-top:22px">
+    <div class="card"><span class="knum">Shared memory</span><h3>The family is the next cohort</h3><p>Cohort memory extends home: mom uploads the timetable, dad gets the PT-uniform reminder, grandma gets medicine nudges as voice notes in her language, one number for the house.</p></div>
+    <div class="card"><span class="knum">Group-native</span><h3>FikarNot inside the group</h3><p>Added as a member of the society or class group, FikarNot digests notices at the source, every member gets a personal summary without forwarding at all.</p></div>
+    <div class="card"><span class="knum">Action layer</span><h3>From reminder to done</h3><p>"Fee due 19th" becomes a UPI deep link; "registration closes Friday" becomes a pre-filled form link. The reminder carries its own resolution.</p></div>
+    <div class="card"><span class="knum">Every life stage</span><h3>Campus → household → office</h3><p>Validated with Redrob's student base, the same loop grows with the user: school circulars and prescriptions for the family, shift rosters and PF deadlines at work. Only the forwards change.</p></div>
+  </div>
+  <p class="lead" style="margin-top:30px;max-width:940px">The long arc: every notice board, circular, and announcement in India is already digitized, as photos in WhatsApp groups. FikarNot is the layer that finally makes that information work for the people it was meant for.</p>
+  <div class="pageno">12</div>
+</section>
+
+
+<!-- ================= CLOSING ================= -->
+<section class="slide" style="justify-content:center;align-items:center;text-align:center">
+  <div>
+    <p style="font-family:var(--disp);font-size:62px;font-weight:700;color:var(--green-deep);letter-spacing:-.02em;line-height:1.15">Har forward, har deadline,<br>time pe.</p>
+    <p style="margin-top:40px;font-family:var(--disp);font-size:26px;font-weight:600">"Forward karo, fikar nahi."</p>
+    <p class="muted" style="margin-top:10px;font-family:var(--mono);font-size:13px">Pratham Team · Redrob Ideathon 2026 · Track 3</p>
+  </div>
+  <div class="pageno">13</div>
+</section>
+
+<!-- ================= SLIDE 12 · APPENDIX: ARCHITECTURE ================= -->
+<section class="slide">
+  <div class="eyebrow">Appendix A · System architecture</div>
+  <div style="display:flex;gap:40px;flex:1;align-items:center">
+    <div style="flex:1.25">
+      <div style="display:flex;flex-direction:column;gap:0;align-items:center">
+        <div style="width:430px;background:#fff;border:1.5px solid var(--green-deep);border-radius:12px;padding:13px 18px;text-align:center"><b style="font-family:var(--disp)">WhatsApp Business API</b><br><span class="muted" style="font-size:13px">text · photos · voice notes · PDFs in</span></div>
+        <div style="height:26px;width:2px;background:var(--green)"></div>
+        <div style="width:430px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 18px;text-align:center"><b style="font-family:var(--disp)">Understanding layer</b> <span class="muted" style="font-size:12px;font-family:var(--mono)">model-agnostic</span><br><span class="muted" style="font-size:13px">standard OCR/ASR components + Redrob's LLM for extraction (event, date, person, place)</span></div>
+        <div style="height:26px;width:2px;background:var(--green)"></div>
+        <div style="width:430px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 18px;text-align:center;position:relative"><b style="font-family:var(--disp)">Memory layer</b><br><span class="muted" style="font-size:13px">fact graph (dates · people · places) + vector store (RAG)</span><div style="position:absolute;right:-118px;top:8px;background:var(--amber-soft);border:1px solid #EBCB95;border-radius:8px;padding:6px 10px;font-size:11px;font-family:var(--mono);color:#9C6A14;width:104px;text-align:left">⚠ conflict check #1: on write</div></div>
+        <div style="height:14px;width:2px;background:var(--green)"></div>
+        <div style="width:250px;height:2px;background:var(--green)"></div>
+        <div style="display:flex;width:250px;justify-content:space-between"><div style="height:14px;width:2px;background:var(--green)"></div><div style="height:14px;width:2px;background:var(--green)"></div></div>
+        <div style="display:flex;gap:18px">
+          <div style="width:230px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;text-align:center;position:relative"><b style="font-family:var(--disp)">Proactive scheduler</b><br><span class="muted" style="font-size:12.5px">reminders · 7 AM digest</span><div style="position:absolute;left:-12px;bottom:-34px;background:var(--amber-soft);border:1px solid #EBCB95;border-radius:8px;padding:4px 9px;font-size:11px;font-family:var(--mono);color:#9C6A14">⚠ check #2: each dawn</div></div>
+          <div style="width:230px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;text-align:center"><b style="font-family:var(--disp)">Query path</b><br><span class="muted" style="font-size:12.5px">RAG over memory + web</span></div>
+        </div>
+        <div style="display:flex;width:250px;justify-content:space-between"><div style="height:14px;width:2px;background:var(--green)"></div><div style="height:14px;width:2px;background:var(--green)"></div></div>
+        <div style="width:250px;height:2px;background:var(--green)"></div>
+        <div style="height:14px;width:2px;background:var(--green)"></div>
+        <div style="width:430px;background:var(--green-deep);color:#fff;border-radius:12px;padding:13px 18px;text-align:center"><b style="font-family:var(--disp)">Back to WhatsApp</b><br><span style="font-size:13px;opacity:.8">instant acks · reminders (template msgs) · digests · answers</span></div>
+      </div>
+    </div>
+    <div style="flex:.85">
+      <h3>Notes for the technically curious</h3>
+      <ul class="ticklist" style="margin-top:10px">
+        <li style="font-size:14.5px"><b>Two-checkpoint conflict engine:</b> new facts are matched against the graph on date / person / place overlap at write time; the full day-graph is re-evaluated every morning.</li>
+        <li style="font-size:14.5px"><b>Cohort formation without group access:</b> the notice is the key. A perceptual image hash plus extracted entities fingerprints each document; identical fingerprints across opted-in users form the cohort and power consensus reads.</li>
+        <li style="font-size:14.5px"><b>Why a fact graph + vectors, not vectors alone:</b> "train on the 18th clashes with exam on the 19th" is a relationship query, embeddings retrieve text, graphs catch collisions.</li>
+        <li style="font-size:14.5px"><b>WhatsApp 24-hour rule, handled:</b> replies are free-form inside the session window; proactive reminders use pre-approved template messages, compliant by design.</li>
+        <li style="font-size:14.5px"><b>Honest unit economics:</b> WhatsApp utility templates cost ₹0.115–0.145 each in India (Meta rate card, Jan 2026), and are free inside an open 24-hour service window; digest batching caps usage at ~30 templates/user/month. All-in (templates + LLM inference) ≈ a few rupees per user per month, paid back if even ~1% of users convert into a Redrob job-funnel session.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="pageno">A1</div>
+</section>
+
+
+<!-- ================= APPENDIX B · TECH DEEP-DIVE ================= -->
+<section class="slide">
+  <div class="eyebrow">Appendix B · Technical deep-dive: memory graph &amp; cohort consensus</div>
+  <div style="display:flex;gap:20px;margin-top:4px">
+    <div class="card" style="flex:1"><span class="knum">1 · The graph = typed rows</span>
+      <pre style="font-family:var(--mono);font-size:12px;line-height:1.55;background:#F6F2E9;border-radius:8px;padding:12px 14px;margin:8px 0;overflow:hidden">documents(id, fingerprint, media_ref,
+          extracted_json, scope, cohort_id)
+facts(id, doc_id, kind, title,
+      start_ts, end_ts, location,
+      confidence, remind_at, scope)</pre>
+      <p style="font-size:13.5px">Postgres + pgvector. Nodes are fact rows; edges are foreign keys (fact → document → cohort). No graph database needed at this scale; that's a feature, not a compromise.</p></div>
+    <div class="card" style="flex:1"><span class="knum">2 · Extraction with a confidence gate</span>
+      <pre style="font-family:var(--mono);font-size:12px;line-height:1.55;background:#F6F2E9;border-radius:8px;padding:12px 14px;margin:8px 0;overflow:hidden">{"doc_type": "exam_timetable",
+ "events": [{"title": "DBMS exam",
+   "date": "2026-06-19", "time": "09:00",
+   "location": "Block A",
+   "confidence": 0.93}]}</pre>
+      <p style="font-size:13.5px">One LLM call per message, strict JSON schema. Confidence ≥ 0.85 saves silently; anything below triggers the confirm message. That single threshold is the trust UX.</p></div>
+  </div>
+  <div style="display:flex;gap:20px;margin-top:18px">
+    <div class="card" style="flex:1"><span class="knum">3 · Conflict = a range query, not ML</span>
+      <pre style="font-family:var(--mono);font-size:12px;line-height:1.55;background:#F6F2E9;border-radius:8px;padding:12px 14px;margin:8px 0;overflow:hidden">SELECT * FROM facts
+WHERE user_id = :u AND status = 'active'
+  AND tstzrange(start_ts, end_ts) &amp;&amp;
+      tstzrange(:new_start, :new_end)
+  AND kind &lt;&gt; :new_kind;</pre>
+      <p style="font-size:13.5px">Run at two checkpoints: synchronously on every write (the instant clash reply) and in the 7 AM cron over the next 72 hours (the digest). Train 18–22 ∩ exam 19 returns one row; that row is the warning.</p></div>
+    <div class="card" style="flex:1;border:1.5px solid var(--green-deep)"><span class="knum" style="color:var(--green-deep)">4 · Cohorts &amp; consensus, from the document itself</span>
+      <p style="font-size:13.5px;margin-bottom:6px">Fingerprint = image pHash + hash of extracted entities; Hamming distance ≤ 8 means the same notice. Opted-in users holding matching fingerprints form one cohort. No group access needed.</p>
+      <pre style="font-family:var(--mono);font-size:12px;line-height:1.55;background:#F6F2E9;border-radius:8px;padding:12px 14px;margin:8px 0;overflow:hidden">DBMS date vote:
+  19 Jun: 11 copies, Σ conf 9.8  ✓
+  18 Jun:  3 copies, Σ conf 1.9
+→ canonical = 19 Jun, provenance kept</pre>
+      <p style="font-size:13.5px">Close votes (under ~70/30) fall back to a confirm. "Yeh bhool jao" deletes a user's facts and provenance; the cohort canonical survives if others remain.</p></div>
+  </div>
+  <div class="pageno">A2</div>
+</section>
+
+<!-- ================= APPENDIX B · UNIT ECONOMICS ================= -->
+<section class="slide">
+  <div class="eyebrow">Appendix C · Unit economics &amp; monetization (estimates)</div>
+  <h2>Costs a few rupees. Feeds the funnel.</h2>
+  <div class="cardrow" style="margin-top:20px">
+    <div class="card"><span class="knum">Cost / user / month</span><h3>≈ ₹5–7 all-in</h3><p>WhatsApp utility templates ₹0.115–0.145 + GST (Meta rate card, Jan 2026) × ~30/month ≈ ₹4–5 · LLM inference (Redrob's stated low-cost stack) ≈ ₹1–2 · infra ≈ ₹0.5. <span class="muted">Bonus: utility messages inside an open 24-hr service window are free, active users cost less.</span></p></div>
+    <div class="card" style="border:1.5px solid var(--green-deep)"><span class="knum" style="color:var(--green-deep)">Value / user (Redrob)</span><h3>Every TPO notice = a lead</h3><p>If even ~1% of monthly actives convert a forwarded placement notice into a Redrob job-funnel session, the funnel value covers the cohort's cost, and acquisition is organic (a classmate's forward), versus the hundreds of rupees hiring platforms typically spend per acquired user.</p></div>
+    <div class="card"><span class="knum">Monetization path</span><h3>Free forever for students</h3><p>Value capture, in order: (1) Redrob job-funnel conversion, live from day one; (2) premium family plan (shared household memory, multi-member reminders); (3) B2B for colleges &amp; societies, verified broadcast with read/ack analytics for TPOs and RWAs.</p></div>
+  </div>
+  <div style="display:flex;gap:0;margin-top:26px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;text-align:center">
+    <div style="flex:1;padding:18px 10px;border-right:1px solid #EFEAE0"><div style="font-family:var(--disp);font-size:26px;font-weight:700;color:var(--green-deep)">~₹6</div><div class="muted" style="font-size:13px">cost / user / month</div></div>
+    <div style="flex:1;padding:18px 10px;border-right:1px solid #EFEAE0"><div style="font-family:var(--disp);font-size:26px;font-weight:700;color:var(--green-deep)">₹0</div><div class="muted" style="font-size:13px">CAC, growth rides the forward button</div></div>
+    <div style="flex:1;padding:18px 10px;border-right:1px solid #EFEAE0"><div style="font-family:var(--disp);font-size:26px;font-weight:700;color:var(--green-deep)">1 forward</div><div class="muted" style="font-size:13px">covers a 60-person cohort</div></div>
+    <div style="flex:1;padding:18px 10px"><div style="font-family:var(--disp);font-size:26px;font-weight:700;color:var(--green-deep)">~1%</div><div class="muted" style="font-size:13px">funnel conversion to break even</div></div>
+  </div>
+  <p class="muted" style="margin-top:16px;font-size:13.5px">All figures are ideathon-stage estimates, deliberately conservative; the structural point stands at any reasonable value: distribution is free, cost is rupees, and the revenue engine (Redrob's funnel) already exists.</p>
+  <div class="pageno">A3</div>
+</section>
+
+
+<!-- ================= APPENDIX C · FAQ ================= -->
+<section class="slide">
+  <div class="eyebrow">Appendix D · The hard questions, answered before you ask</div>
+  <div style="display:flex;gap:36px;flex:1;margin-top:8px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:20px"><div><h3 style="font-size:17px;color:var(--green-deep)">"Which Redrob models does this actually run on?"</h3><p style="font-size:13.5px;line-height:1.5">The understanding layer is deliberately model-agnostic: standard OCR/ASR components, with Redrob's LLM (the company's publicly stated 30+ language, low-cost stack) for extraction. The honest moat was never a model. It's Redrob's hiring data (profiles, postings, placement signals) that powers Layer 3, and no model swap replicates that.</p></div><div><h3 style="font-size:17px;color:var(--green-deep)">"If the notice is buried in 371 unread, how does the user know to forward it?"</h3><p style="font-size:13.5px;line-height:1.5">They don't have to, that's why cohort memory is core, not a feature. Any one of 60 classmates forwarding covers everyone (one CR is enough to seed a class). Roadmap closes the loop fully: group-native mode, where FikarNot sits in the group and reads notices at the source.</p></div><div><h3 style="font-size:17px;color:var(--green-deep)">"What if FikarNot misreads a date and I miss my exam?"</h3><p style="font-size:13.5px;line-height:1.5">Three layers of defense: low-confidence reads trigger a confirm, never a silent save; cohort consensus cross-checks every copy of the same notice; and every reminder cites its source, so the original is one tap away. Wrong-read rate is a tracked core metric, and FikarNot is an assistive layer over the notice, never a replacement for it.</p></div></div><div style="flex:1;display:flex;flex-direction:column;gap:20px"><div><h3 style="font-size:17px;color:var(--green-deep)">"The WhatsApp API doesn't tell you which group a forward came from. Your mockups show it."</h3><p style="font-size:13.5px;line-height:1.5">Correct: the API exposes only a forwarded flag, and we never need group access. Identical forwards are matched by document fingerprint (perceptual hash plus extracted entities), which both forms the cohort and supplies context. Documents also self-identify (letterheads, dept names), and group-native mode adds full context where groups adopt it.</p></div><div><h3 style="font-size:17px;color:var(--green-deep)">"Meta AI is adding persistent memory to WhatsApp. Then what?"</h3><p style="font-size:13.5px;line-height:1.5">Memory is the feature Meta can copy; our moats aren't memory. They're the India-specific workload (blurry vernacular notice photos as the core competency, not an edge case), cohort consensus (a network, not a feature), and Redrob's hiring data (Layer 3). And memory itself compounds, a year of your life in FikarNot is a switching cost no fresh assistant resets.</p></div><div><h3 style="font-size:17px;color:var(--green-deep)">"How are the memory graph and shared memory actually implemented?"</h3><p style="font-size:13.5px;line-height:1.5">Facts are nodes (event, date, person, place) with typed edges; conflict detection is a constraint query on date/person/place overlap, at write time and each dawn. Cohort memory is a shared namespace keyed to group identity, with per-fact provenance: who forwarded, how many copies, consensus score. Personal scope is a separate namespace, never merged.</p></div></div></div>
+  <div class="pageno">A4</div>
+</section>
+
+</body>
+</html>

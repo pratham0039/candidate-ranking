@@ -28,8 +28,9 @@ from jd_parser import parse_jd, jd_query_text, CONCEPT_LEXICONS  # noqa: E402
 from consistency import consistency_violations  # noqa: E402
 from features import (candidate_evidence_text, evidence_score, yoe_score,  # noqa: E402
                       location_score, availability_score, penalty_factors,
-                      engineering_title_gate)
+                      engineering_title_gate, ownership_score)
 from rank import build_reasoning, load_weights, minmax  # noqa: E402
+from constants import REFERENCE_DATE  # noqa: E402
 
 st.set_page_config(page_title="Redrob Candidate Ranker", layout="wide")
 st.title("Redrob Candidate Ranker — sandbox")
@@ -45,7 +46,7 @@ uploaded = st.file_uploader("candidates.jsonl sample (max ~500 rows)", type=["js
 top_n = st.slider("Shortlist size", 5, 100, 20)
 
 if uploaded and jd_text.strip() and st.button("Rank candidates"):
-    today = date(2026, 6, 11)
+    today = REFERENCE_DATE
     spec = parse_jd(jd_text)
     weights = load_weights(os.path.join(ROOT, "artifacts", "weights.json"))
 
@@ -67,19 +68,24 @@ if uploaded and jd_text.strip() and st.button("Rank candidates"):
         if ev <= 0.15:
             continue
         pen, pen_reasons = penalty_factors(c, text)
-        hit_concepts = [
-            k for k in (spec.must_have + spec.nice_to_have)
-            if any(form in text for form in CONCEPT_LEXICONS.get(k, []))
-        ]
+        hit_concepts = []
+        hit_forms = []
+        for k in spec.must_have + spec.nice_to_have:
+            matched = [f for f in CONCEPT_LEXICONS.get(k, []) if f in text]
+            if matched:
+                hit_concepts.append(k)
+                hit_forms.append(max(matched, key=len))
         survivors.append({
             "candidate": c,
             "evidence": ev,
             "evidence_concepts": hit_concepts,
+            "hit_forms": hit_forms,
             "yoe": yoe_score(c, spec),
             "loc": location_score(c, spec),
             "avail": availability_score(c, spec, today),
             "pen": pen,
             "penalty_reasons": pen_reasons,
+            "own": ownership_score(c, text),
         })
         texts.append(text)
 
@@ -106,6 +112,7 @@ if uploaded and jd_text.strip() and st.button("Rank candidates"):
             * s["loc"] ** weights["w_loc"]
             * s["avail"] ** weights["w_avail"]
             * s["pen"] ** weights["w_pen"]
+            * s["own"] ** weights.get("w_own", 1.0)
         ), 4)
 
     survivors.sort(key=lambda s: (-s["emit_score"], s["candidate"]["candidate_id"]))

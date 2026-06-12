@@ -100,6 +100,56 @@ python:3.11-slim container with networking disabled and memory capped at
 49 s on container-local disk (the 275 s first attempt was Docker-for-Mac
 bind-mount I/O overhead, worth knowing about when reproducing on a Mac).
 
+## Experiment G: weight-perturbation sensitivity
+
+The composite is measured against labels that share assumptions with the
+system being tuned (the consistency gate and the benchmark's exclusions
+overlap by construction), so the headline number alone could overstate
+robustness. To quantify how much the ranking depends on the exact tuned
+weights, we jittered every weight independently by +-20% across 200
+samples and re-ranked:
+
+- top-100 overlap with baseline: mean 97.8 / 100, minimum 91
+- top-10 overlap with baseline: mean 9.7 / 10, minimum 8
+- composite range under perturbation: 0.975 to 0.991
+
+The shortlist is driven by the factor design, not by fragile weight
+values. We also verified the gate/benchmark overlap directly: of the 482
+profiles the consistency gate excludes, every exclusion from the two
+strongest families (46 + 1) is independently flagged by the offline labels
+as a planted inconsistency, and the remaining ~435 are weak-family
+profiles whose exclusion costs nearly nothing on any plausible labeling.
+
+## Experiment H: disqualifier prevalence audit
+
+Following the design rule from experiment C, we measured prevalence before
+implementing each remaining JD disqualifier across all 100,000 profiles:
+
+- research-only careers (every role academic/research): 0
+- profiles whose career text mentions LangChain at all: 0
+- architect-titled current roles with no hands-on language: 0
+
+All three checks would be dead code on this pool, so they are documented
+here as calibrated decisions instead of implemented. The consulting-only
+and vision/speech-only penalties did fire and are implemented.
+
+## Experiment I: behavioral twins separate as designed
+
+The dataset documentation names "behavioral twins" as a designed trap:
+near-identical profiles whose platform signals differ. We located tier-4
+family pairs sharing the same career fingerprint and yoe but divergent
+engagement, and checked their fate in our ranking. Representative pairs:
+
+| Active twin | Dormant twin | Outcome |
+|---|---|---|
+| resp 0.64, active May 10 | resp 0.41, active Apr 12 | rank 93 vs excluded from top-100 |
+| resp 0.83, active Apr 21 | resp 0.41, active May 22 | rank 79 vs rank 100 |
+
+The availability multiplier separates them in the expected direction while
+keeping the dormant twin visible (heavily demoted, not erased), matching
+the JD's instruction to down-weight unreachable candidates rather than
+ignore skill.
+
 ## Rejected ideas
 
 - **LLM re-ranking of the top ~300**: standard retrieve-cheap/re-rank-
