@@ -31,3 +31,7 @@ artifacts/precompute.log
 
 # intermediate experiment outputs
 artifacts/submission_*.csv
+
+# local user files
+*.pdf
+yaad.html
