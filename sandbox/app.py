@@ -50,11 +50,19 @@ if uploaded and jd_text.strip() and st.button("Rank candidates"):
     spec = parse_jd(jd_text)
     weights = load_weights(os.path.join(ROOT, "artifacts", "weights.json"))
 
+    # Accept both a JSON array (pretty-printed, like sample_candidates.json)
+    # and JSONL (one object per line, like candidates.jsonl).
+    raw = uploaded.getvalue().decode("utf-8").strip()
     candidates = []
-    for line in uploaded.getvalue().decode("utf-8").splitlines():
-        line = line.strip()
-        if line:
-            candidates.append(json.loads(line))
+    if raw:
+        try:
+            data = json.loads(raw)
+            candidates = data if isinstance(data, list) else [data]
+        except json.JSONDecodeError:
+            for line in raw.splitlines():
+                line = line.strip()
+                if line:
+                    candidates.append(json.loads(line))
     st.write(f"Loaded {len(candidates)} candidates")
 
     survivors, texts = [], []
