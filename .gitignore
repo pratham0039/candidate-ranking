@@ -36,3 +36,10 @@ artifacts/submission_*.csv
 *.pdf
 yaad.html
 artifacts/template_original_backup.pptx
+
+# deck build — handled separately, not part of the code submission
+*.pptx
+fill_deck.py
+make_charts.py
+add_visuals.py
+artifacts/charts/
