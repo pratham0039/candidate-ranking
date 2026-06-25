@@ -43,3 +43,6 @@ fill_deck.py
 make_charts.py
 add_visuals.py
 artifacts/charts/
+
+# keep the final deck PDF and submission CSV in the repo
+!team_hack_it_on.pdf

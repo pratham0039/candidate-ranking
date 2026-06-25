@@ -9,9 +9,9 @@ items close.
 - [x] Passes the official validator (validate_submission.py)
 - [x] Reasoning column passes all six manual-review checks on every row
       (audit_reasoning.py)
-- [ ] **Rename to the registered participant ID** (e.g. team_xxx.csv) once
-      known. Do not edit contents after renaming; re-run the validator on
-      the renamed file.
+- [x] Renamed to **team_Hack_IT_On.csv** (validated after renaming;
+      composite 0.988, 0 honeypots). Kept as .csv — the spec auto-rejects
+      .xlsx/.json submissions (Section 6).
 
 ## 2. Portal metadata (entered at upload time)
 
@@ -40,47 +40,41 @@ items close.
       (byte-identical CSV, ~50 s, <1 GB, network off)
 - [x] Git history shows real iteration (17 commits, experiments log)
 
-## 4. Sandbox (spec section 10.5) - REQUIRED, flagged at Stage 1 if missing
+## 4. Sandbox (spec section 10.5) - REQUIRED
 
-App is ready (sandbox/app.py + sandbox/requirements.txt). To deploy on
-Streamlit Community Cloud (free, ~5 minutes, needs your GitHub login):
+- [x] Deployed on Streamlit Community Cloud (sandbox/app.py).
+      URL in submission_metadata.yaml. Loader accepts both JSON-array
+      (sample_candidates.json) and JSONL uploads; verified end-to-end
+      with the 50-row sample.
 
-1. Go to https://share.streamlit.io and sign in with the pratham0039
-   GitHub account.
-2. New app -> repository pratham0039/candidate-ranking -> branch main ->
-   main file path: sandbox/app.py
-3. Advanced settings -> Python 3.11. Deploy.
-4. Verify: upload sample_candidates.json (50 rows from the bundle),
-   click Rank candidates, confirm a ranked table + CSV download appears.
-5. Put the app URL into submission_metadata.yaml (sandbox_link) and the
-   portal form.
+## 5. The deck (required)
 
-Note: the repo is private; Streamlit Cloud will ask for repo access
-during setup, grant it. If the deploy fights the private repo, the
-fallback the spec allows is the committed Dockerfile recipe.
+- [x] Mandatory Redrob template filled (11 slides, charts embedded) and
+      exported to PDF. Named team_Hack_IT_On.pdf for upload.
 
-## 5. The deck (hackathon listing: PDF, required)
+## 6. Final pre-upload ritual
 
-- [ ] Deck explaining approach -> PDF. Not started; planned content maps
-      to README sections + docs/how_it_works.html visuals +
-      experiments.md results.
+1. [x] `make judge` - all green (validator + reasoning audit)
+2. [x] `eval_harness.py team_Hack_IT_On.csv` - composite 0.988, 0 honeypots
+3. [x] CSV renamed to team_Hack_IT_On.csv; validated after renaming
+4. [x] submission_metadata.yaml complete (team, phone, repo, sandbox)
+5. [ ] Confirm GitHub release assets download (logged-out browser)
+6. [ ] Confirm sandbox link loads end-to-end (incognito window)
+7. [ ] Upload on the portal: team_Hack_IT_On.csv + team_Hack_IT_On.pdf +
+      metadata; save the confirmation
+8. [ ] Do not resubmit without a measured improvement: ties break by
+      earlier timestamp, and the last submission is the one that counts
 
-## 6. Final pre-upload ritual (do in order, ~10 minutes)
+## Upload bundle (final filenames)
 
-1. `make judge CANDIDATES=path/to/candidates.jsonl` - all green
-2. `python eval_harness.py submission.csv` (local) - composite as expected
-3. Rename CSV to participant ID; re-run validator on the renamed file
-4. Fill remaining TODOs in submission_metadata.yaml; commit + push
-5. Confirm GitHub release assets still downloadable (logged out browser)
-6. Confirm sandbox link loads end-to-end (incognito window)
-7. Upload CSV + metadata on the portal; save the confirmation
-8. Do not resubmit afterwards without a measured improvement: ties break
-   by earlier timestamp, and the last submission is the one that counts
+- team_Hack_IT_On.csv   - the ranking (CSV, NOT xlsx - spec rejects xlsx)
+- team_Hack_IT_On.pdf   - the deck
+- GitHub repo: https://github.com/pratham0039/candidate-ranking (grant
+  organizer access at Stage 3; repo is private)
+- Sandbox URL + portal metadata from submission_metadata.yaml
 
 ## Open decisions
 
-- [ ] Scrub the two personal files from remote git history (force push,
-      needs you: `! cd .../redrob-ranker && git push --force origin main`)
 - [ ] Whether to commit the offline benchmark (ground_truth.py,
       eval_harness.py, make_gold100.py) before final submission -
       recommended for Stage 4 verifiability; currently kept local
