@@ -21,7 +21,7 @@ items close.
 - [x] Primary contact phone             (+91-7206680039)
 - [x] GitHub repository URL             https://github.com/pratham0039/candidate-ranking
       (grant organizer access at Stage 3; repo is private)
-- [ ] Sandbox / demo link               <- NEEDS DEPLOY (see below)
+- [x] Sandbox / demo link               (deployed on Streamlit Cloud)
 - [x] AI tools declared                 (Claude, Cursor, ChatGPT, Gemini)
 - [x] Compute environment summary       (in submission_metadata.yaml)
 - [x] Team member list                  (solo)
