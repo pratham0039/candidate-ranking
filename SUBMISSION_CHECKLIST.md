@@ -15,14 +15,14 @@ items close.
 
 ## 2. Portal metadata (entered at upload time)
 
-- [ ] Team name (registered)            <- NEEDED FROM YOU
+- [x] Team name (registered)            (Hack_IT_On)
 - [x] Primary contact name              (Pratham Modi)
 - [x] Primary contact email             (pratham@a79.ai)
-- [ ] Primary contact phone             <- NEEDED FROM YOU
-- [x] GitHub repository URL             https://github.com/pratham0039/India_runs
+- [x] Primary contact phone             (+91-7206680039)
+- [x] GitHub repository URL             https://github.com/pratham0039/candidate-ranking
       (grant organizer access at Stage 3; repo is private)
 - [ ] Sandbox / demo link               <- NEEDS DEPLOY (see below)
-- [x] AI tools declared                 (Claude)
+- [x] AI tools declared                 (Claude, Cursor, ChatGPT, Gemini)
 - [x] Compute environment summary       (in submission_metadata.yaml)
 - [x] Team member list                  (solo)
 - [x] Methodology summary, 158/200 words (in submission_metadata.yaml)
@@ -47,7 +47,7 @@ Streamlit Community Cloud (free, ~5 minutes, needs your GitHub login):
 
 1. Go to https://share.streamlit.io and sign in with the pratham0039
    GitHub account.
-2. New app -> repository pratham0039/India_runs -> branch main ->
+2. New app -> repository pratham0039/candidate-ranking -> branch main ->
    main file path: sandbox/app.py
 3. Advanced settings -> Python 3.11. Deploy.
 4. Verify: upload sample_candidates.json (50 rows from the bundle),

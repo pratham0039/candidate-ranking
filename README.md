@@ -34,7 +34,7 @@ python precompute.py --candidates path/to/candidates.jsonl
 
 # 1b. SHORTCUT: skip the precompute by downloading the prebuilt artifacts
 #     from the GitHub release instead:
-#     https://github.com/pratham0039/India_runs/releases/tag/artifacts-v1
+#     https://github.com/pratham0039/candidate-ranking/releases/tag/artifacts-v1
 #     Place embeddings.npz, tfidf.pkl, jd_embedding.npy into artifacts/
 
 # 2. Ranking step (CPU only, no network, well under 5 minutes)

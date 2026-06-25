@@ -3,22 +3,22 @@
 # ============================================================================
 # Team identity
 # ============================================================================
-team_name: "FILL_ME"  # TODO: your registered team name
+team_name: "Hack_IT_On"
 
 primary_contact:
   name: "Pratham Modi"
   email: "pratham@a79.ai"
-  phone: "+91-XXXXXXXXXX"  # TODO
+  phone: "+91-7206680039"
 
 team_members:
   - name: "Pratham Modi"
     email: "pratham@a79.ai"
-    role: "Team Lead / ML Engineer"
+    role: "ML Engineer"
 
 # ============================================================================
 # Code and reproducibility
 # ============================================================================
-github_repo: "https://github.com/pratham0039/India_runs"
+github_repo: "https://github.com/pratham0039/candidate-ranking"
 
 sandbox_link: "https://FILL_ME"  # TODO: Streamlit Cloud / HF Spaces link after deploy
 

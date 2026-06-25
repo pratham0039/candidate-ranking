@@ -35,3 +35,4 @@ artifacts/submission_*.csv
 # local user files
 *.pdf
 yaad.html
+artifacts/template_original_backup.pptx
